@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": false,
+    "lib": ["es2016", "dom"],
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "jsx": "react",
+    "noEmit": false,
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/express-request-language"
+    ],
+    "outDir": "dist"
+  },
+  "compileOnSave": true
+}
