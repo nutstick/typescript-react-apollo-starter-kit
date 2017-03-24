@@ -1,10 +1,11 @@
+import { transform } from 'babel-core';
 import * as BluebirdPromise from 'bluebird';
 import * as path from 'path';
-import parser from 'typescript-react-intl';
+import * as ts from 'typescript';
 import { locales } from '../src/config';
 import { glob, readFile, writeFile } from './lib/fs';
 
-const gaze = require('gaze');
+import * as gaze from 'gaze';
 const pkg = require('../package.json');
 
 const GLOB_PATTERN = 'src/**/*.{js,jsx,ts,tsx}';
@@ -112,17 +113,30 @@ async function extractMessages() {
     try {
       const code = await readFile(fileName);
       const posixName = posixPath(fileName);
-      const result = parser(code);
 
-      // console.log(result);
+      const typescriptCode = ts.transpileModule(code, {
+        compilerOptions: {
+          module: ts.ModuleKind.ES2015,
+          target: ts.ScriptTarget.ES2015,
+          jsx: ts.JsxEmit.Preserve,
+        },
+      });
 
-      if (result && result.length) {
+      const result = (<any> transform(typescriptCode.outputText, {
+        presets: [
+          [ 'env', { targets: { node: 'current' } } ],
+          'stage-2',
+          'react',
+        ],
+        plugins: ['react-intl'],
+      })).metadata['react-intl'];
+      if (result.messages && result.messages.length) {
         fileToMessages[posixName] = result.messages.sort(compareMessages);
       } else {
         delete fileToMessages[posixName];
       }
     } catch (err) {
-      console.error(`extractMessages: In ${fileName}:\n`, err.codeFrame || err);
+      console.error(`ERROR: extractMessages In ${fileName}:\n`, err.codeFrame || err);
     }
   };
 
@@ -132,7 +146,7 @@ async function extractMessages() {
   await updateMessages(false);
 
   if (process.argv.includes('--watch')) {
-    const watcher = await new BluebirdPromise((resolve, reject) => {
+    const watcher = await new BluebirdPromise<{ on: any }>((resolve, reject) => {
       gaze(GLOB_PATTERN, (err, val) => (err ? reject(err) : resolve(val)));
     });
     watcher.on('changed', async (file) => {

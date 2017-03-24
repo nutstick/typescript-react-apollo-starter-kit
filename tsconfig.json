@@ -5,16 +5,17 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "noImplicitAny": false,
-    "lib": ["es2016", "dom"],
+    "lib": ["es2017", "dom"],
     "moduleResolution": "node",
     "sourceMap": true,
-    "jsx": "react",
+    "jsx": "preserve",
     "noEmit": false,
-    "typeRoots": [
-      "node_modules/@types",
-      "node_modules/express-request-language"
-    ],
-    "outDir": "dist"
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "baseUrl": "src"
   },
-  "compileOnSave": true
+  "compileOnSave": true,
+  "exclude": [
+    "node_modules"
+  ]
 }

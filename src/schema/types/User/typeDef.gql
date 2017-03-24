@@ -1,0 +1,16 @@
+type Account {
+  id: String
+  email: String
+  facebookAccessCode: String
+  googleAccessCode: String
+}
+
+type User {
+  _id: String
+  name: String
+  avatar: String
+  createAt: Date
+  updateAt: Date
+  account: Account
+  threads: String
+}

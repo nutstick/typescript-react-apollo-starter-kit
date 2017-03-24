@@ -7,10 +7,12 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
+import * as cp from 'child_process';
+import * as pkg from '../package.json';
 import bundle from './bundle';
 import clean from './clean';
-import extractMessages from './extractMessages';
 import copy from './copy';
+import extractMessages from './extractMessages';
 import render from './render';
 import run from './run';
 
@@ -24,9 +26,12 @@ async function build() {
   await run(copy);
   await run(bundle);
 
-  // DOTO
   if (process.argv.includes('--static')) {
     await run(render);
+  }
+
+  if (process.argv.includes('--docker')) {
+    cp.spawnSync('docker', ['build', '-t', pkg.name, '.'], { stdio: 'inherit' });
   }
 }
 

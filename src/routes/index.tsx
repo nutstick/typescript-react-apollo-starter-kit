@@ -1,35 +1,50 @@
 import * as React from 'react';
 import { IndexRoute, Route } from 'react-router';
-import App from '../components/App';
-import HomeRoute from './Home';
-import NotFoundRoute from './NotFound';
+import Layout from '../components/Layout';
+import { injectAsyncReducer } from '../redux/reducers';
 
-/*declare const System: any;
-if (typeof System.import === 'undefined') {
-  System.import = (module) => Promise.resolve(require(module));
-}*/
-
-export default (store) => {
-  return {
-    path: '/',
-    getComponent (nextState, cb) {
-      cb(null, App);
-    },
-    indexRoute: HomeRoute,
-    childRoutes: [
-      NotFoundRoute,
-    ],
-  };
+const errorLoading = (err) => {
+  console.error('Dynamic page loading failed', err); // eslint-disable-line no-console
 };
 
-// export default (store) => {
-//   return (
-//     <Route path="/" component={App}>
-//       {/* Home (main) route */}
-//       <IndexRoute component={Home} />
+const loadModule = (cb) => (componentModule) => {
+  cb(null, componentModule.default);
+};
 
-//       {/* Catch all route */}
-//       <Route path="*" component={NotFound} status={404} />
-//     </Route>
-//   );
-// };
+export default (store) => {
+  return (<Route
+    path="/"
+    component={Layout}
+  >
+    <IndexRoute
+      getComponent={(nextState, cb) => {
+        // ตายที่ withStyle
+        _import('./Home/Home')
+          .then(loadModule(cb))
+          .catch(errorLoading);
+      }}
+    />
+  </Route>);
+  // {
+  //   component: App,
+  //   childRoutes: [
+  //     {
+  //       path: '/',
+  //       name: 'Home',
+  //       getComponent(nextState, cb) {
+  //         _import('./Home')
+  //           .then(loadModule(cb))
+  //           .catch(errorLoading);
+  //       },
+  //     }, {
+  //       path: '*',
+  //       name: 'NotFound',
+  //       getComponent(nextState, cb) {
+  //         _import('./NotFound')
+  //           .then(loadModule(cb))
+  //           .catch(errorLoading);
+  //       },
+  //     },
+  //   ],
+  // };
+};

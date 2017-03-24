@@ -7,7 +7,7 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-function format(time) {
+export function format(time) {
   return time.toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, '$1');
 }
 
@@ -28,8 +28,9 @@ function run(fn, options?) {
 }
 
 if (require.main === module && process.argv.length > 2) {
-  delete require.cache[__filename]; // eslint-disable-line no-underscore-dangle
-  const module = require(`./${process.argv[2]}.ts`).default; // eslint-disable-line import/no-dynamic-require
+  delete require.cache[__filename];
+  // tslint:disable-next-line:no-var-requires
+  const module = require(`./${process.argv[2]}.ts`).default;
   run(module).catch((err) => { console.error(err.stack); process.exit(1); });
 }
 

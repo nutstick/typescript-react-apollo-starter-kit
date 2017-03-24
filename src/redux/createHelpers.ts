@@ -1,3 +1,11 @@
+import gql from 'graphql-tag';
+import * as fetch from 'isomorphic-fetch';
+
+const graphqlRequestDeprecatedMessage = `\`graphqlRequest\` has been deprecated.
+You should use Apollo: \`client.query({ query, variables...})\` or \`client.mutate()\`
+Don't forget to enclose your query to gql\`…\` tag or import *.graphql file.
+See docs at http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\\.query`;
+
 interface IConfig {
   method?: string;
   headers?: {
@@ -7,45 +15,35 @@ interface IConfig {
   credentials?: string;
 }
 
-function fetch(url, config: IConfig) {
-  return new Promise<any> ((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open(config.method, url);
-
-    Object.keys(config.headers).forEach((header) => {
-      request.setRequestHeader(header, config.headers[header]);
-    });
-    request.withCredentials = true;
-
-    request.onload = () => {
-      if (request.status === 200) {
-        return resolve(request.response);
-      }
-      reject('Unable to load RSS');
-    };
-    request.onerror = () => {
-      reject('Unable to load RSS');
-    };
-    request.send(config.body);
-  });
+interface IOptions {
+  skipCache?: boolean;
 }
 
-function createGraphqlRequest(fetchKnowingCookie) {
-  return async (query, variables) => {
-    const fetchConfig = {
-      method: 'post',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query, variables }),
-      credentials: 'include',
-    };
-    const resp = await fetchKnowingCookie('/graphql', fetchConfig);
-    if (resp.status !== 200) {
-      throw new Error(resp.statusText);
+function createGraphqlRequest(apolloClient) {
+  return async function graphqlRequest(queryOrString, variables, options: IOptions = {}) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.error(graphqlRequestDeprecatedMessage);
     }
-    return await resp.json();
+
+    const { skipCache } = options;
+    let query = queryOrString;
+    if (typeof queryOrString === 'string') {
+      query = gql([queryOrString]);
+    }
+
+    if (skipCache) {
+      return apolloClient.networkInterface.query({ query, variables });
+    }
+
+    let isMutation = false;
+    if (query.definitions) {
+      isMutation = query.definitions.some(definition => definition && (definition.operation === 'mutation'));
+    }
+    if (isMutation) {
+      return apolloClient.mutate({ mutation: query, variables });
+    }
+    return apolloClient.query({ query, variables });
   };
 }
 
@@ -73,11 +71,15 @@ function createFetchKnowingCookie({ cookie }) {
 
 export default function createHelpers(config) {
   const fetchKnowingCookie = createFetchKnowingCookie(config);
-  const graphqlRequest = createGraphqlRequest(fetchKnowingCookie);
+  const graphqlRequest = createGraphqlRequest(config.apolloClient);
 
   return {
-    fetch: fetchKnowingCookie,
-    graphqlRequest,
+    client: config.apolloClient,
     history: config.history,
+    fetch: fetchKnowingCookie,
+    // @deprecated('Use `client` instead')
+    apolloClient: config.apolloClient,
+    // @deprecated('Use `client.query()` or `client.mutate()` instead')
+    graphqlRequest,
   };
 }

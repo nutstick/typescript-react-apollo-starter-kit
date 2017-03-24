@@ -1,6 +1,9 @@
 export const port = process.env.PORT || 3000;
 export const host = process.env.WEBSITE_HOSTNAME || `localhost:${port}`;
 
+export const mongodb = process.env.MONGODB || `gcguide`;
+
+
 // default locale is the first one
 export const locales = ['en-US', 'cs-CZ'];
 
@@ -19,8 +22,8 @@ export const auth = {
 
   // https://developers.facebook.com/
   facebook: {
-    id: process.env.FACEBOOK_APP_ID || '186244551745631',
-    secret: process.env.FACEBOOK_APP_SECRET || 'a970ae3240ab4b9b8aae0f9f0661c6fc',
+    id: process.env.FACEBOOK_APP_ID || '1763061417243160',
+    secret: process.env.FACEBOOK_APP_SECRET || '1b699b6a6ba0f41f0cdec20dee4ff911',
   },
 
   // https://cloud.google.com/console/project

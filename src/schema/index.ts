@@ -1,42 +1,25 @@
-import { GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { fromGlobalId, nodeDefinitions } from 'graphql-relay';
-import { User } from '../models';
+import { GraphQLSchema } from 'graphql';
+import * as GraphQLDate from 'graphql-date';
+import { makeExecutableSchema } from 'graphql-tools';
+import * as SchemaType from './schema.gql';
+import * as IntlMessage from './types/IntlMessage';
+import * as Mutation from './types/Mutation';
+import * as Query from './types/Query';
+import * as User from './types/User';
 
-const { nodeInterface, nodeField } = nodeDefinitions(
-  async (globalId) => {
-    const { type, id } = fromGlobalId(globalId);
-    if (type === 'Thread') {
-      return await Thread.findById(id).exec();
-    } else if (type === 'User') {
-      return await User.findById(id).exec();
-    }
-    return null;
+const schema = [SchemaType];
+const modules = [Query, User, IntlMessage];
+
+const resolvers = Object.assign({ Date: GraphQLDate }, ...(modules.map((m) => m.resolver).filter((res) => res)));
+const typeDefs = schema.concat(modules.map((m) => m.type).filter((res) => !!res));
+
+const Schema: GraphQLSchema = makeExecutableSchema({
+  logger: console,
+  resolverValidationOptions: {
+    requireResolversForNonScalar: false,
   },
-  (obj) => {
-    if (obj instanceof Thread) {
-      return ThreadType;
-    } else if (obj instanceof User) {
-      return UserType;
-    }
-    return null;
-  }
-);
+  resolvers,
+  typeDefs,
+});
 
-export default class Schema extends GraphQLSchema {
-  constructor() {
-    super({
-      query: new GraphQLObjectType({
-        name: 'Query',
-        fields: {
-          viewer: {
-            type: UserType,
-            resolve: async (_, __, { request }) => {
-              return await User.findById(request.user.id).exec();
-            },
-            node: nodeField,
-          }
-        },
-      }),
-    })
-  }
-}
+export { Schema };

@@ -4,6 +4,9 @@
     "use-strict": true,
     "no-console": [ false ],
     "object-literal-sort-keys": false,
-    "quotemark": [ true, "single", "jsx-double" ]
+    "quotemark": [ true, "single", "jsx-double" ],
+    "variable-name": false,
+    "member-access": false,
+    "member-ordering": [false]
   }
 }

@@ -1,0 +1,7 @@
+type IntlMessage {
+  id: String!
+  defaultMessage: String!
+  message: String
+  description: String
+  files: [String]
+}

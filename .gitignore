@@ -1,5 +1,13 @@
 # Dependency directories
 node_modules
 
+# Database
+db
+
+# Compiled assets
+dist
+output/babelcache
+
 # Logs
 npm-debug.log.*
+yarn-error.log.*

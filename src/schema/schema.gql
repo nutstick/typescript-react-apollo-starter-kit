@@ -1,0 +1,5 @@
+scalar Date
+
+schema {
+  query: Query
+}

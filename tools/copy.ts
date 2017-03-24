@@ -7,11 +7,11 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
+import * as chokidar from 'chokidar';
 import * as path from 'path';
+import * as pkg from '../package.json';
 import { cleanDir, copyDir, copyFile, makeDir, writeFile } from './lib/fs';
-
-const gaze = require('gaze');
-const pkg = require('../package.json');
+import { format } from './run';
 
 /**
  * Copies static files such as robots.txt, favicon.ico to the
@@ -29,39 +29,36 @@ async function copy() {
       },
     }, null, 2)),
     copyFile('LICENSE.txt', 'dist/LICENSE.txt'),
-    copyDir('src/content', 'dist/content'),
-    copyDir('src/public', 'dist/public'),
+    copyDir('public', 'dist/public'),
     copyDir('src/messages', 'dist/messages'),
   ]);
 
   if (process.argv.includes('--watch')) {
-    const watcher = await new Promise<any>((resolve, reject) => {
-      gaze([
-        'src/content/**/*',
-        'src/messages/**/*',
-        'src/public/**/*',
-      ], (err, val) => (err ? reject(err) : resolve(val)));
-    });
+    const watcher = chokidar.watch([
+      'src/messages/**/*',
+      'public/**/*',
+    ], { ignoreInitial: true });
 
     watcher.on('all', async (event, filePath) => {
-      const dist = path.join('dist/', path.relative('src', filePath));
+      const start = new Date();
+      const src = path.relative('./', filePath);
+      const dist = path.join('dist/', src.startsWith('src') ? path.relative('src', src) : src);
       switch (event) {
-        case 'added':
-        case 'renamed':
-        case 'changed':
-          if (filePath.endsWith('/')) {
-            return;
-          }
+        case 'add':
+        case 'change':
           await makeDir(path.dirname(dist));
           await copyFile(filePath, dist);
           break;
-        case 'deleted':
+        case 'unlink':
+        case 'unlinkDir':
           cleanDir(dist, { nosort: true, dot: true });
           break;
         default:
           return;
       }
-      console.log(`[file ${event}] ${dist}`);
+      const end = new Date();
+      const time = end.getTime() - start.getTime();
+      console.log(`[${format(end)}] ${event} '${dist}' after ${time} ms`);
     });
   }
 }

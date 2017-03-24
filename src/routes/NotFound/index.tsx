@@ -1,10 +1,10 @@
 import * as React from 'react';
 import NotFound from './NotFound';
 
-const title = "Page not found";
+const title = 'Page not found';
 
 export default {
-  path: "*",
+  path: '*',
   action() {
     return {
       title,

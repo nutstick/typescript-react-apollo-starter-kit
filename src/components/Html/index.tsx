@@ -5,11 +5,15 @@ import { analytics } from '../../config';
 export interface IHtmlProps extends React.Props<any> {
   title: string;
   description: string;
+  styles: Array<{
+    id: string,
+    cssText: string,
+  }>;
   children?: string;
   state?: any;
 }
 
-const Html: React.StatelessComponent<IHtmlProps> = ({ title, description, children, state }) => {
+const Html: React.StatelessComponent<IHtmlProps> = ({ title, description, styles, children, state }) => {
   const head = Helmet.rewind();
   return (<html className="no-js">
     <head>
@@ -24,6 +28,14 @@ const Html: React.StatelessComponent<IHtmlProps> = ({ title, description, childr
       <meta name="description" content={description} />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+      {styles.map((style) =>
+        <style
+          key={style.id}
+          id={style.id}
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: style.cssText }}
+        />,
+      )}
     </head>
     <body>
       <div id="app" dangerouslySetInnerHTML={{ __html: children }} />

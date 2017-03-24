@@ -1,83 +1,190 @@
-import { Promise } from 'es6-promise';
+// Needed for redux-saga es6 generator support
+// import '!file?name=[name].[ext]!./manifest.json';
+// import 'file?name=[name].[ext]!./.htaccess';
+// Load the favicon, the manifest.json file and the .htaccess file
+// import 'file?name=[name].[ext]!./favicon.ico';
+// Import all the third party stuff
+import { createNetworkInterface } from 'apollo-client';
+import * as FastClick from 'fastclick';
+import * as FontFaceObserver from 'fontfaceobserver';
+import { createPath } from 'history/PathUtils';
 import * as React from 'react';
-import * as ReactDom from 'react-dom';
-import { AppContainer as HotEnabler } from 'react-hot-loader';
-import { Provider } from 'react-redux';
-import { applyRouterMiddleware, browserHistory, match, Router, RouterContext } from 'react-router';
+import { ApolloProvider } from 'react-apollo';
+import * as ReactDOM from 'react-dom';
+import { addLocaleData } from 'react-intl';
+import cs from 'react-intl/locale-data/cs';
+import en from 'react-intl/locale-data/en';
+import { match, Router } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
-import { useScroll } from 'react-router-scroll';
+import App from './components/App';
+import createApolloClient from './core/createApolloClient';
+import { deepForceUpdate, ErrorReporter } from './core/devUtils';
+import { updateMeta } from './core/DOMUtils';
+import history from './core/history';
 import { configureStore } from './redux/configureStore';
-import routes from './routes';
+import createRoutes from './routes';
 
-const data = window.__INITIAL_STATE__;
-const store = configureStore(data, {
-  history: browserHistory,
+const apolloClient = createApolloClient({
+  networkInterface: createNetworkInterface({
+    uri: '/graphql',
+    opts: {
+      // Additional fetch options like `credentials` or `headers`
+      credentials: 'include',
+    },
+  }),
 });
 
-const history = syncHistoryWithStore(browserHistory, store);
+[en, cs].forEach(addLocaleData);
 
-const render = (routes) => {
-  match({ history, routes }, (error, redirectLocation, renderProps) => {
-    console.log(renderProps);
-    ReactDom.render(
-      (<HotEnabler>
-        <Provider store={store} key="provider">
-          <Router {...renderProps} render={applyRouterMiddleware(useScroll())} history={history}>
-            {routes}
-          </Router>
-        </Provider>
-      </HotEnabler>),
-      document.getElementById('app'),
-    );
-  });
+const openSansObserver = new FontFaceObserver('Open Sans', {});
+
+openSansObserver.load().then(() => {
+  document.body.classList.add('font-loaded');
+}, () => {
+  document.body.classList.remove('font-loaded');
+});
+
+const store = configureStore(window.__INITIAL_STATE__, {
+  history,
+  apolloClient,
+});
+
+const context = {
+  // Enables critical path CSS rendering
+  // https://github.com/kriasoft/isomorphic-style-loader
+  insertCss: (...styles) => {
+    console.log(styles)
+    // eslint-disable-next-line no-underscore-dangle
+    const removeCss = styles.map((x) => x._insertCss());
+    return () => { removeCss.forEach((f) => f()); };
+  },
+  // For react-apollo
+  client: apolloClient,
+  // Initialize a new Redux store
+  // http://redux.js.org/docs/basics/UsageWithReact.html
+  store,
 };
 
-render(routes(store));
+// Switch off the native scroll restoration behavior and handle it manually
+// https://developers.google.com/web/updates/2015/09/history-api-scroll-restoration
+const scrollPositionsHistory = {};
+if (window.history && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
 
-/**
- * TODO
- * example reference: https://github.com/bertho-zero/react-redux-universal-hot-example/blob/master/src/client.js
- */
-// if (module.hot) {
-//   module.hot.accept('./routes', () => {
-//     const nextRoutes = require('./routes')(store);
-//     render(nextRoutes);
-//   });
-// }
+let onRenderComplete = function initialRenderComplete(route?, location?) {
+  const elem = document.getElementById('css');
+  if (elem) {
+    elem.parentNode.removeChild(elem);
+  }
+  onRenderComplete = function renderComplete(route, location) {
+    document.title = route.title;
 
-// if (process.env.NODE_ENV !== 'production') {
-//   window.React = React; // enable debugger
+    updateMeta('description', route.description);
+    // Update necessary tags in <head> at runtime here, ie:
+    // updateMeta('keywords', route.keywords);
+    // updateCustomMeta('og:url', route.canonicalUrl);
+    // updateCustomMeta('og:image', route.imageUrl);
+    // updateLink('canonical', route.canonicalUrl);
+    // etc.
 
-//   if (!dest || !dest.firstChild || !dest.firstChild.attributes
-//     || !dest.firstChild.attributes['data-react-checksum']) {
-//     console.error('Server-side React render was discarded.' +
-//       'Make sure that your initial render does not contain any client-side code.');
-//   }
-// }
+    let scrollX = 0;
+    let scrollY = 0;
+    const pos = scrollPositionsHistory[location.key];
+    if (pos) {
+      scrollX = pos.scrollX;
+      scrollY = pos.scrollY;
+    } else {
+      const targetHash = location.hash.substr(1);
+      if (targetHash) {
+        const target = document.getElementById(targetHash);
+        if (target) {
+          scrollY = window.pageYOffset + target.getBoundingClientRect().top;
+        }
+      }
+    }
 
-// if (__DEVTOOLS__ && !window.devToolsExtension) {
-//   const devToolsDest = document.createElement('div');
-//   window.document.body.insertBefore(devToolsDest, null);
-//   const DevTools = require('./containers/DevTools/DevTools');
-//   ReactDOM.render(
-//     <Provider store={store} key="provider">
-//       <DevTools />
-//     </Provider>,
-//     devToolsDest
-//   );
-// }
+    // Restore the scroll position if it was saved into the state
+    // or scroll to the given #hash anchor
+    // or scroll to top of the page
+    window.scrollTo(scrollX, scrollY);
 
-// if (online && !__DEVELOPMENT__ && 'serviceWorker' in navigator) {
-//   navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-//     .then(() => {
-//       console.log('Service worker registered!');
-//     })
-//     .catch(error => {
-//       console.log('Error registering service worker: ', error);
-//     });
+    // Google Analytics tracking. Don't send 'pageview' event after
+    // the initial rendering, as it was already sent
+    if (window.ga) {
+      window.ga('send', 'pageview', createPath(location));
+    }
+  };
+};
 
-//   navigator.serviceWorker.ready.then((/* registration */) => {
-//     console.log('Service Worker Ready');
-//   });
-// }
-// });
+// Make taps on links and buttons work fast on mobiles
+(FastClick as any).attach(document.body);
+
+let appInstance;
+let currentLocation = history.location;
+
+// Re-render the app when window.location changes
+async function onLocationChange(location?, action?) {
+  // Remember the latest scroll position for the previous location
+  scrollPositionsHistory[currentLocation.key] = {
+    scrollX: window.pageXOffset,
+    scrollY: window.pageYOffset,
+  };
+  // Delete stored scroll position for next page if any
+  if (action === 'PUSH') {
+    delete scrollPositionsHistory[location.key];
+  }
+  currentLocation = location;
+
+  const routes = createRoutes(store);
+  match({ history, routes }, (error, redirectLocation, renderProps) => {
+    ReactDOM.render(
+      <App context={context}>
+        <Router
+          {...renderProps}
+        >
+        </Router>
+      </App>,
+      document.getElementById('app'),
+      () => onRenderComplete(renderProps, location),
+    );
+  });
+}
+
+export default function main() {
+  // Handle client-side navigation by using HTML5 History API
+  // For more information visit https://github.com/mjackson/history#readme
+  currentLocation = history.location;
+  history.listen(onLocationChange);
+  onLocationChange(currentLocation);
+}
+
+// Handle errors that might happen after rendering
+// Display the error in full-screen for development mode
+if (__DEV__) {
+  window.addEventListener('error', (event) => {
+    appInstance = null;
+    document.title = `Runtime Error: ${(event as any).error.message}`;
+    ReactDOM.render(<ErrorReporter error={(event as any).error} />, document.getElementById('app'));
+  });
+}
+
+// Enable Hot Module Replacement (HMR)
+if (module.hot) {
+  module.hot.accept('./routes', async () => {
+    const routes = createRoutes(store);
+
+    currentLocation = history.location;
+    await onLocationChange(currentLocation);
+    if (appInstance) {
+      try {
+        // Force-update the whole tree, including components that refuse to update
+        deepForceUpdate(appInstance);
+      } catch (error) {
+        appInstance = null;
+        document.title = `Hot Update Error: ${error.message}`;
+        ReactDOM.render(<ErrorReporter error={error} />, document.getElementById('app'));
+      }
+    }
+  });
+}

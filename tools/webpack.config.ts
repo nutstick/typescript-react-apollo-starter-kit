@@ -6,6 +6,7 @@ import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
 import * as path from 'path';
 import * as webpack from 'webpack';
 import { Configuration, Resolve } from 'webpack';
+import * as pkg from '../package.json';
 
 const INTL_REQUIRE_DESCRIPTIONS = true;
 
@@ -24,33 +25,84 @@ const config: Configuration = {
     path: path.resolve(__dirname, '../dist/public/assets'),
     publicPath: '/assets/',
     sourcePrefix: '  ',
+    pathinfo: isVerbose,
   },
 
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.ts(x?)$/,
-        loaders: [
-          'babel-loader',
-          'ts-loader',
+        use: [
+          {
+            loader: 'string-replace-loader',
+            query: {
+              search: '_import',
+              replace: 'import',
+              flags: 'g',
+            },
+          },
+          // {
+          //   loader: 'babel-loader',
+          //   query: {
+          //     // https://github.com/babel/babel-loader#options
+          //     cacheDirectory: isDebug,
+          //     // https://babeljs.io/docs/usage/options/
+          //     babelrc: false,
+          //     presets: [
+          //       ['es2015', {modules: false}],
+          //       // A Babel preset that can automatically determine the Babel plugins and polyfills
+          //       // https://github.com/babel/babel-preset-env
+          //       // ['env', {
+          //       //   targets: {
+          //       //     browsers: pkg.browserslist,
+          //       //   },
+          //       //   modules: false,
+          //       //   useBuiltIns: false,
+          //       //   debug: false,
+          //       // }],
+          //       // Experimental ECMAScript proposals
+          //       // https://babeljs.io/docs/plugins/#presets-stage-x-experimental-presets-
+          //       'stage-2',
+          //       'react',
+          //       ...isDebug ? [] : ['react-optimize'],
+          //     ],
+          //     plugins: [
+          //       'syntax-dynamic-import',
+          //       'transform-async-to-generator',
+          //       'transform-regenerator',
+          //       'transform-runtime',
+          //       ...isDebug ? ['transform-react-jsx-source'] : [],
+          //       ...isDebug ? ['transform-react-jsx-self'] : [],
+          //     ],
+          //   },
+          // },
+          'awesome-typescript-loader?useBabel=true',
         ],
         exclude: /node_modules/,
       },
       {
         test: /\.css$/,
-        loaders: [
-          'style-loader',
-          `css-loader?${JSON.stringify({
-            // CSS Loader https://github.com/webpack/css-loader
-            importLoaders: 1,
-            sourceMap: isDebug,
-            // CSS Modules https://github.com/css-modules/css-modules
-            modules: true,
-            localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
-            // CSS Nano http://cssnano.co/options/
-            minimize: !isDebug,
-          })}`,
-          'postcss-loader?pack=default',
+        use: [
+          {
+            loader: 'isomorphic-style-loader',
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+              sourceMap: isDebug,
+              modules: true,
+              localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
+              minimize: isDebug,
+              discardComments: { removeAll: true },
+            },
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              config: path.resolve(__dirname, './postcss.config.js'),
+            },
+          },
         ],
       },
       {
@@ -92,7 +144,7 @@ const config: Configuration = {
         include: [
           path.resolve(__dirname, '../src'),
         ],
-        loader: 'graphql-tag/loader',
+        loader: 'raw-loader',
       },
     ],
   },
@@ -104,6 +156,7 @@ const config: Configuration = {
     extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.json', '.ts', '.tsx'],
   },
 
+  bail: !isDebug,
   cache: isDebug,
 
   stats: {
@@ -140,29 +193,9 @@ const clientConfig: Configuration = extend(true, {}, config, {
 
     new ExtractTextPlugin('[name].css'),
 
-    new (webpack as any).LoaderOptionsPlugin({
-      options: {
-        postcss: [
-          cssnano({
-            autoprefixer: {
-              browsers: [
-                'safari 9',
-                'ie 10-11',
-                'last 2 Chrome versions',
-                'last 2 Firefox versions',
-                'edge 13',
-                'ios_saf 9.0-9.2',
-                'ie_mob 11',
-                'Android >= 4',
-              ],
-              cascade: false,
-              add: true,
-              remove: true,
-            },
-            safe: true,
-          }),
-        ],
-      },
+    new webpack.LoaderOptionsPlugin({
+      minimize: !isDebug,
+      debug: !isDebug,
     }),
 
     // Define free variables
@@ -178,11 +211,7 @@ const clientConfig: Configuration = extend(true, {}, config, {
     new AssetsPlugin({
       path: path.resolve(__dirname, '../dist'),
       filename: 'assets.js',
-      processOutput: (x) => `module.exports = ${JSON.stringify(x)};`,
-    }),
-
-    new webpack.optimize.MinChunkSizePlugin({
-      minChunkSize: 50000,
+      processOutput: (x) => `module.exports = ${JSON.stringify(x, null, 2)};`,
     }),
 
     // Move modules that occur in multiple entry chunks to a new entry chunk (the commons chunk).
@@ -196,6 +225,24 @@ const clientConfig: Configuration = extend(true, {}, config, {
       // Search for equal or similar files and deduplicate them in the output
       // https://webpack.github.io/docs/list-of-plugins.html#dedupeplugin
       new webpack.optimize.DedupePlugin(),
+      // Minimize all JavaScript output of chunks
+      // https://github.com/mishoo/UglifyJS2#compressor-options
+      new (<any> webpack).optimize.UglifyJsPlugin({
+        sourceMap: true,
+        compress: {
+          screw_ie8: true, // React doesn't support IE8
+          warnings: isVerbose,
+          unused: true,
+          dead_code: true,
+        },
+        mangle: {
+          screw_ie8: true,
+        },
+        output: {
+          comments: false,
+          screw_ie8: true,
+        },
+      }),
     ],
   ],
 
@@ -258,8 +305,11 @@ const serverConfig: Configuration = extend(true, {}, config, {
 
     // Adds a banner to the top of each generated chunk
     // https://webpack.github.io/docs/list-of-plugins.html#bannerplugin
-    // new webpack.BannerPlugin('require("source-map-support").install();',
-    //   { raw: true, entryOnly: false }),
+    new (<any> webpack).BannerPlugin({
+      banner: 'require("source-map-support").install();',
+      raw: true,
+      entryOnly: false,
+    }),
   ],
 
   node: {

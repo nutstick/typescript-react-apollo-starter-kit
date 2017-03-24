@@ -1,0 +1,6 @@
+# Root Query
+type Query {
+  helloworld: String
+  me: User
+  intl(locale: String!): [IntlMessage]
+}

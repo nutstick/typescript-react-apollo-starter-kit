@@ -1,10 +1,11 @@
+import gql from 'graphql-tag';
 import {
   SET_LOCALE_ERROR,
   SET_LOCALE_START,
   SET_LOCALE_SUCCESS,
 } from './constants';
 
-const query = `
+const query = gql`
   query ($locale:String!) {
     intl (locale:$locale) {
       id
@@ -14,7 +15,7 @@ const query = `
 `;
 
 export function setLocale({ locale }) {
-  return async (dispatch, getState, { graphqlRequest }) => {
+  return async (dispatch, getState, { client }) => {
     dispatch({
       type: SET_LOCALE_START,
       payload: {
@@ -23,7 +24,7 @@ export function setLocale({ locale }) {
     });
 
     try {
-      const { data } = await graphqlRequest(query, { locale });
+      const { data } = await client.query({ query, variables: { locale }});
       const messages = data.intl.reduce((msgs, msg) => {
         msgs[msg.id] = msg.message; // eslint-disable-line no-param-reassign
         return msgs;

@@ -1,3 +1,3 @@
 export interface IState {
-  user?: any;
+  [key: string]: any;
 };

@@ -7,20 +7,22 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
+import * as browserSync from 'browser-sync';
 import * as webpack from 'webpack';
+import * as webpackDevMiddleware from 'webpack-dev-middleware';
 import * as webpackHotMiddleware from 'webpack-hot-middleware';
-import * as webpackMiddleware from 'webpack-middleware';
+import * as WriteFilePlugin from 'write-file-webpack-plugin';
 import clean from './clean';
 import copy from './copy';
 import extractMessages from './extractMessages';
 import run from './run';
 import runServer from './runServer';
-import webpackConfig, { isDebug } from './webpack.config';
+import webpackConfig from './webpack.config';
 
-const browserSync = require('browser-sync');
-
+const isDebug = !process.argv.includes('--release');
 process.argv.push('--watch');
-const [config] = webpackConfig;
+
+const [clientConfig, serverConfig] = webpackConfig;
 
 /**
  * Launches a development web server with "live reload" functionality -
@@ -31,46 +33,45 @@ async function start() {
   await run(extractMessages);
   await run(copy);
   await new Promise((resolve) => {
+    // Save the server-side bundle files to the file system after compilation
+    // https://github.com/webpack/webpack-dev-server/issues/62
+    serverConfig.plugins.push(new WriteFilePlugin({ log: false }));
+    
     // Hot Module Replacement (HMR) + React Hot Reload
     if (isDebug) {
       // tslint:disable-next-line:no-string-literal
-      (config.entry as webpack.Entry)['client'] = [
-        'webpack/hot/only-dev-server',
-        'webpack-hot-middleware/client',
-        'react-hot-loader/patch',
-      ]
-        // tslint:disable-next-line:no-string-literal
-        .concat(config.entry['client']);
-      config.output.filename = config.output.filename.replace('[chunkhash', '[hash');
-      config.output.chunkFilename = config.output.chunkFilename.replace('[chunkhash', '[hash');
-      (
-        (config.module as webpack.OldModule)
-        .loaders.find((x: webpack.OldUseRule) => x.loaders.includes('ts-loader')) as webpack.OldUseRule
-      )
-        .loaders.unshift('react-hot-loader/webpack');
-      config.plugins.push(new webpack.HotModuleReplacementPlugin());
-      config.plugins.push(new webpack.NoErrorsPlugin());
+      clientConfig.entry['client'] = ['react-hot-loader/patch', 'webpack-hot-middleware/client?reload=true', clientConfig.entry['client']];
+      clientConfig.output.filename = clientConfig.output.filename.replace('[chunkhash', '[hash');
+      clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace('[chunkhash', '[hash');
+      const loader = (<webpack.UseRule>
+        (<webpack.NewModule> clientConfig.module).rules
+          .find((x) => x.test === /\.ts(x?)$/)
+      );
+      clientConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
+      clientConfig.plugins.push(new webpack.NoEmitOnErrorsPlugin());
     }
 
     const bundler = webpack(webpackConfig);
-    const wpMiddleware = webpackMiddleware(bundler, {
+    const wpMiddleware = webpackDevMiddleware(<any> bundler, {
       // IMPORTANT: webpack middleware can't access config,
       // so we should provide publicPath by ourselves
-      publicPath: config.output.publicPath,
+      publicPath: clientConfig.output.publicPath,
 
       // Pretty colored output
-      stats: config.stats,
+      stats: clientConfig.stats,
     });
-    const hotMiddleware = webpackHotMiddleware((bundler as any).compilers[0]);
+    const hotMiddleware = webpackHotMiddleware((<any> bundler).compilers[0]);
 
     let handleBundleComplete = async (stats?) => {
-      // tslint:disable-next-line:no-shadowed-variable
-      handleBundleComplete = (stats) => !stats.stats[1].compilation.errors.length && runServer();
+      handleBundleComplete = (_stats) => {
+        return !_stats.stats[1].compilation.errors.length && runServer();
+      }
+
       const server = await runServer();
       const bs = browserSync.create();
 
-      bs.init({
-        ...(config.debug ? {} : { notify: false, ui: false }),
+      (<any> bs).init({
+        ...isDebug ? {} : { notify: false, ui: false },
 
         proxy: {
           target: server.host,
@@ -81,10 +82,7 @@ async function start() {
         },
       }, resolve);
     };
-
-    (bundler as any).plugin('done', (stats) => {
-      handleBundleComplete(stats);
-    });
+    (bundler as any).plugin('done', (stats) => handleBundleComplete(stats));
   });
 }
 
