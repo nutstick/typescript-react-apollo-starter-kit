@@ -5,6 +5,6 @@ before_install:
 - yarn install
 - yarn global add typescript@2.2.1
 script:
-- yarn run bundle
+- yarn run build
 services:
 - mongodb 
