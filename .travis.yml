@@ -4,7 +4,10 @@ node_js:
 before_install:
 - yarn install
 - yarn global add typescript@2.2.1
+- PATH=${PATH//:\.\/node_modules\/\.bin/}
 script:
 - yarn run build
 services:
 - mongodb 
+cache:
+  yarn: true
