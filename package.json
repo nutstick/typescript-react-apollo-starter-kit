@@ -139,6 +139,7 @@
     "write-file-webpack-plugin": "^3.4.2"
   },
   "scripts": {
+    "mongo": "C:\\Program Files\\MongoDB\\Server\\3.4\\bin\\mongod.exe --dbpath db",
     "bundle": ".\\node_modules\\.bin\\ts-node tools/run bundle",
     "build": ".\\node_modules\\.bin\\ts-node tools/run build",
     "dev": ".\\node_modules\\.bin\\ts-node tools/run runServer | nodemon --watch dist",

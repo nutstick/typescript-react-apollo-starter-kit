@@ -6,3 +6,5 @@ before_install:
 - yarn add -g typescript@2.2.1
 script:
 - npm test
+services:
+- mongodb
