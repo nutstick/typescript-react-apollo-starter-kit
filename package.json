@@ -1,6 +1,6 @@
 {
-  "name": "gcguide",
-  "version": "0.5.1",
+  "name": "universal-retypeql",
+  "version": "0.6.0",
   "main": "dist/main.server.js",
   "author": "Nuttapat Kirawittaya(nuttapat.kirawittaya@gmail.com)",
   "license": "MIT",
