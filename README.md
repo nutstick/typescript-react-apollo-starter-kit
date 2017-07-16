@@ -1,11 +1,10 @@
-# Chula Coursetable
+# Typescript ReactQL Starter Kit
 
-![Screenshot](https://raw.githubusercontent.com/nutstick/chula-coursetable/master/ss.png)
-
-A coursetable management app for chulalongkorn university's students
-build base on [Universal RetypeQL](https://github.com/nutstick/universal-retypeql).
+Universal React, Redux, NodeJS, GraphQL server using Typescript 2 and Webpack 2.
 
 ## Demo
+
+[Chula Coursetable](https://github.com/nutstick/chula-coursetable) A coursetable management app for chulalongkorn university's students
 
 ## Features
 
@@ -16,6 +15,7 @@ build base on [Universal RetypeQL](https://github.com/nutstick/universal-retypeq
 * Provide GraphQL Server
 * Universal rendering
 * React stack with apollo
+* React hot reload
 * React Intl Support
 * Beautiful UI with [Semantics UI](https://semantic-ui.com/)
 
@@ -26,17 +26,18 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 * Install NodeJs >=  6.0.0 and NPM >= 7.3.2
-* Install MongoDB Driver
+* Install Yarn >= 0.20.0
+* Install MongoDB Driver >= 2.6.10
 
 ### Installing
 
 ```bash
 # clone repo
-git clone https://github.com/nutstick/chula-coursetable
-# run mongodb
+git clone https://github.com/nutstick/typescript-reactql-starter-kit
+# Run mongodb service
 mongo
-# run npm install
-npm install
+# Install all dependency using yarn or npm
+yarn install
 ```
 
 ### Deployment
