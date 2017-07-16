@@ -1,10 +1,10 @@
-module.exports = () => ({
+module.exports = ({ file }) => ({
   // The list of plugins for PostCSS
   // https://github.com/postcss/postcss
   plugins: [
     // Transfer @import rule by inlining content, e.g. @import 'normalize.css'
     // https://github.com/jonathantneal/postcss-partial-import
-    require('postcss-partial-import')(),
+    require('postcss-import')({ root: file.dirname }),
     // Allow you to fix url() according to postcss to and/or from options
     // https://github.com/postcss/postcss-url
     require('postcss-url')(),
@@ -50,5 +50,11 @@ module.exports = () => ({
     // Add vendor prefixes to CSS rules using values from caniuse.com
     // https://github.com/postcss/autoprefixer
     require('autoprefixer')(/* package.json/browserslist */),
+    // Allows an author to store a set of properties in a named variable, then reference them in other style rules.
+    // https://github.com/pascalduez/postcss-apply
+    require('postcss-apply')(),
+    // Create stunning grids based on fractions you define without having to pass a lot of options.
+    // https://github.com/peterramsing/lost
+    require('lost')(),
   ],
 });

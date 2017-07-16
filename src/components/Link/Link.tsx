@@ -14,7 +14,7 @@ interface ILinkProps extends React.Props<any> {
   onClick?(e: any): void;
 }
 
-export default class Link extends React.Component<ILinkProps, void> {
+export default class Link extends React.Component<ILinkProps> {
   static defaultProps = {
     onClick: null,
   };
@@ -38,6 +38,6 @@ export default class Link extends React.Component<ILinkProps, void> {
 
   public render() {
     const { to, children, ...props } = this.props;
-    return <a href={to} {...props} onClick={this.handleClick}>{children}</a>;
+    return (<a href={to} {...props} onClick={this.handleClick}>{children}</a>);
   }
 }

@@ -1,15 +1,3 @@
-import * as React from 'react';
-import NotFound from './NotFound';
+import AsyncComponents from '../../components/AsyncComponents';
 
-const title = 'Page not found';
-
-export default {
-  path: '*',
-  action() {
-    return {
-      title,
-      components: (<NotFound title={title} />),
-      status: 404,
-    };
-  },
-};
+export default AsyncComponents(() => _import('./NotFound'));

@@ -18,7 +18,7 @@ export const readFile = (file) => new Promise<string>((resolve, reject) => {
 });
 
 export const writeFile = (file, contents) => new Promise<string>((resolve, reject) => {
-  fs.writeFile(file, contents, 'utf8', (err) => (err ? reject(err) : resolve()));
+  fs.writeFile(file, contents, { encoding: 'utf8' }, (err) => (err ? reject(err) : resolve()));
 });
 
 export const copyFile = (source, target) => new Promise<string>((resolve, reject) => {

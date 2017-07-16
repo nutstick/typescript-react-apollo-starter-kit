@@ -1,10 +1,14 @@
 import * as React from 'react';
 
-interface IErrorPage extends React.Props<any> {
-  error: { name, message, stack };
+export namespace ErrorPage {
+  export interface IProps extends React.Props<any> {
+    error: { name, message, stack };
+  }
+
+  export type Props = IProps;
 }
 
-class ErrorPage extends React.Component<IErrorPage, void> {
+export default class ErrorPage extends React.Component<ErrorPage.Props> {
   public render() {
     if (process.env.NODE_ENV !== 'production') {
       const { error } = this.props;
@@ -25,5 +29,3 @@ class ErrorPage extends React.Component<IErrorPage, void> {
     );
   }
 }
-
-export default ErrorPage;

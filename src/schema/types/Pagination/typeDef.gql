@@ -1,0 +1,20 @@
+# Base Node
+interface Node {
+  _id: ID!
+}
+# Edges
+interface Edges {
+  node: Node!
+  cursor: ID!
+}
+# PageInfo
+type PageInfo {
+  endCursor: ID
+  hasNextPage: Boolean
+}
+# Page format
+interface Page {
+  totalCount: Int!
+  edges: [Edges]
+  pageInfo: PageInfo
+}

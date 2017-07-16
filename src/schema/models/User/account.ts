@@ -5,22 +5,31 @@ interface IAccountDocument {
     id: string;
     accessCode: string;
   };
-  googleAccessCode?: {
+  google?: {
     id: string;
     accessCode: string;
   };
-};
+}
 
 const Account = {
   email: String,
-  password: String,
-  facebook: {
-    id: String,
-    accessCode: String,
+  password: {
+    $required: false,
+    $type: String,
   },
-  googleAccessCode: {
-    id: String,
-    accessCode: String,
+  facebook: {
+    $required: false,
+    $type: {
+      id: String,
+      accessCode: String,
+    },
+  },
+  google: {
+    $required: false,
+    $type: {
+      id: String,
+      accessCode: String,
+    },
   },
 };
 

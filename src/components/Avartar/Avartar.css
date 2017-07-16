@@ -1,0 +1,13 @@
+.wrapper {
+  /*display: inline-block;*/
+  position: relative;
+  /*overflow: hidden;*/
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+img.reponsive-img {
+  margin-left: -50px;
+}

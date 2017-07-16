@@ -2,8 +2,9 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowJs": true,
+    "emitDecoratorMetadata": true,
     "noImplicitAny": false,
     "lib": ["es2017", "dom"],
     "moduleResolution": "node",
@@ -12,10 +13,11 @@
     "noEmit": false,
     "outDir": "dist",
     "skipLibCheck": true,
-    "baseUrl": "src"
+    "allowSyntheticDefaultImports": true
   },
-  "compileOnSave": true,
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "compileOnSave": false,
+  "buildOnSave": false
 }

@@ -1,21 +1,14 @@
 import * as Iridium from 'iridium';
 import { Collection, Index, Instance, Model, ObjectID, Property } from 'iridium';
 import { Account, IAccountDocument } from './account';
-import { GuideDetail, IGuideDetailDocument } from './guide';
-import { IPermissionTypeDocument, PermissionType } from './permissionType';
 
 interface IUserDocument {
   _id?: string;
   name: string;
   account: IAccountDocument;
   avatar: string;
-  gender?: string;
-  locale?: string;
-  timezone?: number;
   createAt?: Date;
   updateAt?: Date;
-  type?: IPermissionTypeDocument;
-  guide?: IGuideDetailDocument;
 }
 
 @Index({
@@ -35,25 +28,17 @@ class User extends Instance<IUserDocument, User> implements IUserDocument {
 
   @Property(String, true)
   avatar: string;
-  @Property(/^(Male|Female|Other)$/, false)
-  gender: string;
-  @Property(/^.+$/, false)
-  locale: string;
-  @Property(Number, false)
-  timezone: number;
   @Property(Date, false)
   createAt: Date;
   @Property(Date, false)
   updateAt: Date;
 
-  @Property(PermissionType, false)
-  type: IPermissionTypeDocument;
-  @Property(GuideDetail, false)
-  guide: IGuideDetailDocument;
-
   static onCreating(user: IUserDocument) {
     user.createAt = new Date();
     user.updateAt = new Date();
+    if (!user.account.facebook && !user.account.password) {
+      return Promise.reject(new Error('expected one login method'));
+    }
   }
 
   static onSaving(user: User, changes: Iridium.Changes) {

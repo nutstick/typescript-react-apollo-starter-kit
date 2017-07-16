@@ -1,0 +1,27 @@
+.float {
+  & {
+    position: absolute;
+    bottom: -2rem;
+    right: 1.5rem;
+    z-index: 120;
+  }
+  &.show {
+    bottom: 2rem;
+  }
+  > .action-button {
+    display: flex;
+    padding: 1rem;
+    border-radius: 50%;
+    font-size: 1rem;
+    background-color: #5a6669;
+    color: #ffffff;
+
+    cursor: pointer;
+    height: 56px;
+    width: 56px;
+
+    user-select: none;
+
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+  }
+}

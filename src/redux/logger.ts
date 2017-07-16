@@ -1,10 +1,11 @@
-import createLogger from 'redux-logger';
+import {  } from 'immutable';
+import { createLogger } from 'redux-logger';
 
 const logger = createLogger({
   collapsed: true,
-  /*stateTransformer: (state) => {
-    return immutableToJS(state);
-  },*/
+  stateTransformer: (state) => {
+    return state.toJS ? state.toJS() : state;
+  },
   predicate: (getState, { type }) => {
     return type !== 'redux-form/BLUR' &&
            type !== 'redux-form/CHANGE' &&
@@ -12,6 +13,5 @@ const logger = createLogger({
            type !== 'redux-form/TOUCH';
   },
 });
-
 
 export default logger;

@@ -1,0 +1,35 @@
+@import '../variables.css';
+
+@keyframes mainlayout {
+  from {
+    margin-top: 70%;
+    opacity: 0.3;
+  }
+  to {
+    margin-top: 0%;
+    opacity: 1.0;
+  }
+}
+
+.root {
+  height: 100%;
+  margin-left: 0px;
+  margin-right: 0px;
+  box-sizing: border-box;
+
+  // animation: mainlayout 1.22s 1;
+  // transition-timing-function: ease-in-out;
+
+  &.expanded-left {
+    margin-left: var(--sidebar-width);
+  }
+
+  &.expanded-right {
+    margin-right: var(--search-width);
+  }
+}
+
+.scroll {
+  position: relative;
+  overflow: hidden;
+}

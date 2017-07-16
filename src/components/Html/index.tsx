@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as Helmet from 'react-helmet';
 import { analytics } from '../../config';
 
 export interface IHtmlProps extends React.Props<any> {
@@ -14,20 +13,15 @@ export interface IHtmlProps extends React.Props<any> {
 }
 
 const Html: React.StatelessComponent<IHtmlProps> = ({ title, description, styles, children, state }) => {
-  const head = Helmet.rewind();
   return (<html className="no-js">
     <head>
-      {head.base.toComponent()}
-      {head.title.toComponent()}
-      {head.meta.toComponent()}
-      {head.link.toComponent()}
-      {head.script.toComponent()}
-
       <meta charSet="utf-8" />
       <meta httpEquiv="x-ua-compatible" content="ie=edge" />
+      <title>{title}</title>
       <meta name="description" content={description} />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.2/semantic.min.css"></link>
       {styles.map((style) =>
         <style
           key={style.id}

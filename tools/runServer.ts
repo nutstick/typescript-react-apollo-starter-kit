@@ -28,7 +28,6 @@ function runServer() {
 
       process.stdout.write(time.replace(/.*(\d{2}:\d{2}:\d{2}).*/, '[$1] '));
       process.stdout.write(data);
-
       if (match) {
         server.host = match[1];
         server.stdout.removeListener('data', onStdOut);

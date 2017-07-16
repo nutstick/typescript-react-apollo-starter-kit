@@ -1,11 +1,14 @@
+if (process.env.BROWSER) {
+  throw new Error('Do not import `config.js` from inside the client-side code.');
+}
+
 export const port = process.env.PORT || 3000;
 export const host = process.env.WEBSITE_HOSTNAME || `localhost:${port}`;
 
-export const mongodb = process.env.MONGODB || `gcguide`;
-
+export const mongodb = process.env.MONGODB || `ts-reactql-starter-kit`;
 
 // default locale is the first one
-export const locales = ['en-US', 'cs-CZ'];
+export const locales = ['en-US', 'cs-CZ', 'th-TH'];
 
 export const analytics = {
 
@@ -18,12 +21,12 @@ export const analytics = {
 
 export const auth = {
 
-  jwt: { secret: process.env.JWT_SECRET || 'React Starter Kit' },
+  jwt: { secret: process.env.JWT_SECRET || 'Typescript ReactQL Starter Kit' },
 
   // https://developers.facebook.com/
   facebook: {
-    id: process.env.FACEBOOK_APP_ID || '1763061417243160',
-    secret: process.env.FACEBOOK_APP_SECRET || '1b699b6a6ba0f41f0cdec20dee4ff911',
+    id: process.env.FACEBOOK_APP_ID || '196824377496129',
+    secret: process.env.FACEBOOK_APP_SECRET || '41850d422ed0c257ff83aefaa412fd76',
   },
 
   // https://cloud.google.com/console/project

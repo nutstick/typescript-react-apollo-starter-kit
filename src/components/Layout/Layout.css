@@ -1,6 +1,5 @@
 @import '../../../node_modules/normalize.css/normalize.css';
-
-/*! React Starter Kit | MIT License | https://www.reactstarterkit.com/ */
+/* @import '../../../node_modules/semantic-ui-css/semantic.css'; */
 
 @import '../variables.css';
 
@@ -14,6 +13,11 @@ html {
   font-size: 1em; /* ~16px; */
   font-family: var(--font-family-base);
   line-height: 1.375; /* ~22px */
+  height: 100%;
+}
+
+body {
+  height: 100%;
 }
 
 a {

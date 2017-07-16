@@ -2,20 +2,31 @@ import * as BluebirdPromise from 'bluebird';
 import * as fs from 'fs';
 import { join } from 'path';
 import { locales } from '../../../config';
+import { IResolver } from '../index';
 
 const CONTENT_DIR = join(__dirname, './messages');
 
 const readFile = BluebirdPromise.promisify(fs.readFile);
 
-const resolver = {
+const resolver: IResolver<any, any> = {
   Query: {
     helloworld() {
       return 'Hello Word';
     },
-    me(root, args, { user }) {
-      return user;
+    async me(_, __, { database, user }) {
+      if (user && user._id) {
+        return await database.User.findOne({ _id: user._id });
+      }
+      return null;
     },
-    async intl({ request }, { locale }) {
+    async search(_, { search }, { database }) {
+      if (!search) {
+        return null;
+      }
+      // TODO Adding some search results
+      return null;
+    },
+    async intl(_, { locale }) {
       if (!locales.includes(locale)) {
         throw new Error(`Locale '${locale}' not supported`);
       }

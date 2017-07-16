@@ -1,8 +1,7 @@
-const resolver = {
+import { IResolver } from '../index';
+
+const resolver: IResolver<any, any> = {
   Mutation: {
-    addOne() {
-      return 1;
-    },
   },
 };
 

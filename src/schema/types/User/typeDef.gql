@@ -1,16 +1,15 @@
+# Account type
 type Account {
-  id: String
   email: String
   facebookAccessCode: String
   googleAccessCode: String
 }
-
-type User {
-  _id: String
-  name: String
+# A user
+type User implements Node {
+  _id: ID!
+  name: String!
   avatar: String
-  createAt: Date
-  updateAt: Date
+  createAt: Date!
+  updateAt: Date!
   account: Account
-  threads: String
 }

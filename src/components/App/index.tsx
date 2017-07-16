@@ -1,3 +1,4 @@
+import * as PropTypes from 'prop-types';
 import * as React from 'react';
 import * as deepForceUpdate from 'react-deep-force-update';
 import { IntlProvider } from 'react-intl';
@@ -27,16 +28,16 @@ class App extends React.Component<IAppProps, any> {
   };
 
   static childContextTypes = {
-    insertCss: React.PropTypes.func.isRequired,
+    insertCss: PropTypes.func.isRequired,
     // Integrate Redux
     // http://redux.js.org/docs/basics/UsageWithReact.html
-    store: React.PropTypes.shape({
-      subscribe: React.PropTypes.func.isRequired,
-      dispatch: React.PropTypes.func.isRequired,
-      getState: React.PropTypes.func.isRequired,
+    store: PropTypes.shape({
+      subscribe: PropTypes.func.isRequired,
+      dispatch: PropTypes.func.isRequired,
+      getState: PropTypes.func.isRequired,
     }).isRequired,
     // Apollo Client
-    client: React.PropTypes.object.isRequired,
+    client: PropTypes.object.isRequired,
   };
 
   public getChildContext() {
@@ -52,7 +53,6 @@ class App extends React.Component<IAppProps, any> {
         if (this.intl !== newIntl) {
           this.intl = newIntl;
           if (__DEV__) {
-            // eslint-disable-next-line no-console
             console.log('Intl changed — Force rendering');
           }
           deepForceUpdate(this);
@@ -70,11 +70,11 @@ class App extends React.Component<IAppProps, any> {
 
   public render() {
     const store = this.props.context && this.props.context.store;
+    const client = this.props.context && this.props.context.client;
     const state = store && store.getState();
     this.intl = (state && state.intl) || {};
     const { initialNow, locale, messages } = this.intl;
     const localeMessages = (messages && messages[locale]) || {};
-
     return (
       <IntlProvider
         initialNow={initialNow}

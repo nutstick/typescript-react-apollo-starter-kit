@@ -14,16 +14,15 @@ import * as ReactDOM from 'react-dom';
 import { addLocaleData } from 'react-intl';
 import cs from 'react-intl/locale-data/cs';
 import en from 'react-intl/locale-data/en';
-import { match, Router } from 'react-router';
-import { syncHistoryWithStore } from 'react-router-redux';
+import { BrowserRouter } from 'react-router-dom';
+import { ConnectedRouter } from 'react-router-redux';
 import App from './components/App';
 import createApolloClient from './core/createApolloClient';
 import { deepForceUpdate, ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
 import { configureStore } from './redux/configureStore';
-import createRoutes from './routes';
-
+import Routes from './routes';
 const apolloClient = createApolloClient({
   networkInterface: createNetworkInterface({
     uri: '/graphql',
@@ -32,6 +31,7 @@ const apolloClient = createApolloClient({
       credentials: 'include',
     },
   }),
+  ssrForceFetchDelay: 100,
 });
 
 [en, cs].forEach(addLocaleData);
@@ -53,7 +53,6 @@ const context = {
   // Enables critical path CSS rendering
   // https://github.com/kriasoft/isomorphic-style-loader
   insertCss: (...styles) => {
-    console.log(styles)
     // eslint-disable-next-line no-underscore-dangle
     const removeCss = styles.map((x) => x._insertCss());
     return () => { removeCss.forEach((f) => f()); };
@@ -77,10 +76,10 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
   if (elem) {
     elem.parentNode.removeChild(elem);
   }
-  onRenderComplete = function renderComplete(route, location) {
-    document.title = route.title;
+  onRenderComplete = function renderComplete(route_, location_) {
+    document.title = route_.title;
 
-    updateMeta('description', route.description);
+    updateMeta('description', route_.description);
     // Update necessary tags in <head> at runtime here, ie:
     // updateMeta('keywords', route.keywords);
     // updateCustomMeta('og:url', route.canonicalUrl);
@@ -90,12 +89,12 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
 
     let scrollX = 0;
     let scrollY = 0;
-    const pos = scrollPositionsHistory[location.key];
+    const pos = scrollPositionsHistory[location_.key];
     if (pos) {
       scrollX = pos.scrollX;
       scrollY = pos.scrollY;
     } else {
-      const targetHash = location.hash.substr(1);
+      const targetHash = location_.hash.substr(1);
       if (targetHash) {
         const target = document.getElementById(targetHash);
         if (target) {
@@ -112,7 +111,7 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
     // Google Analytics tracking. Don't send 'pageview' event after
     // the initial rendering, as it was already sent
     if (window.ga) {
-      window.ga('send', 'pageview', createPath(location));
+      window.ga('send', 'pageview', createPath(location_));
     }
   };
 };
@@ -130,34 +129,31 @@ async function onLocationChange(location?, action?) {
     scrollX: window.pageXOffset,
     scrollY: window.pageYOffset,
   };
+
   // Delete stored scroll position for next page if any
   if (action === 'PUSH') {
     delete scrollPositionsHistory[location.key];
   }
   currentLocation = location;
 
-  const routes = createRoutes(store);
-  match({ history, routes }, (error, redirectLocation, renderProps) => {
-    ReactDOM.render(
-      <App context={context}>
-        <Router
-          {...renderProps}
-        >
-        </Router>
-      </App>,
-      document.getElementById('app'),
-      () => onRenderComplete(renderProps, location),
-    );
-  });
+  ReactDOM.render(
+    <App context={context}>
+      <BrowserRouter>
+        <ConnectedRouter history={history}>
+          <Routes />
+        </ConnectedRouter>
+      </BrowserRouter>
+    </App>,
+    document.getElementById('app'),
+    // TODO
+    () => onRenderComplete({ title: 'Coursetable' }, location),
+  );
 }
 
-export default function main() {
-  // Handle client-side navigation by using HTML5 History API
-  // For more information visit https://github.com/mjackson/history#readme
-  currentLocation = history.location;
-  history.listen(onLocationChange);
-  onLocationChange(currentLocation);
-}
+// Handle client-side navigation by using HTML5 History API
+// For more information visit https://github.com/mjackson/history#readme
+history.listen(onLocationChange);
+onLocationChange(currentLocation);
 
 // Handle errors that might happen after rendering
 // Display the error in full-screen for development mode
@@ -172,8 +168,6 @@ if (__DEV__) {
 // Enable Hot Module Replacement (HMR)
 if (module.hot) {
   module.hot.accept('./routes', async () => {
-    const routes = createRoutes(store);
-
     currentLocation = history.location;
     await onLocationChange(currentLocation);
     if (appInstance) {

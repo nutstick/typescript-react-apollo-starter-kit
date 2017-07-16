@@ -1,50 +1,23 @@
 import * as React from 'react';
-import { IndexRoute, Route } from 'react-router';
+import { Route, Switch } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { injectAsyncReducer } from '../redux/reducers';
+import Home from './Home';
+import NotFound from './NotFound';
 
-const errorLoading = (err) => {
-  console.error('Dynamic page loading failed', err); // eslint-disable-line no-console
+export const errorLoading = (err) => {
+  console.error('Dynamic page loading failed', err);
 };
 
 const loadModule = (cb) => (componentModule) => {
   cb(null, componentModule.default);
 };
 
-export default (store) => {
-  return (<Route
-    path="/"
-    component={Layout}
-  >
-    <IndexRoute
-      getComponent={(nextState, cb) => {
-        // ตายที่ withStyle
-        _import('./Home/Home')
-          .then(loadModule(cb))
-          .catch(errorLoading);
-      }}
-    />
-  </Route>);
-  // {
-  //   component: App,
-  //   childRoutes: [
-  //     {
-  //       path: '/',
-  //       name: 'Home',
-  //       getComponent(nextState, cb) {
-  //         _import('./Home')
-  //           .then(loadModule(cb))
-  //           .catch(errorLoading);
-  //       },
-  //     }, {
-  //       path: '*',
-  //       name: 'NotFound',
-  //       getComponent(nextState, cb) {
-  //         _import('./NotFound')
-  //           .then(loadModule(cb))
-  //           .catch(errorLoading);
-  //       },
-  //     },
-  //   ],
-  // };
-};
+export default (props) => (
+  <Layout>
+    <Switch>
+      <Route exact path="/" component={Home} />
+      <Route component={NotFound} />
+    </Switch>
+  </Layout>
+);
+

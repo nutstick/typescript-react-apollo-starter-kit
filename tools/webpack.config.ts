@@ -18,6 +18,8 @@ const isVerbose = process.argv.includes('--verbose');
 // client-side (client.js) and server-side (server.js) bundles
 // -----------------------------------------------------------------------------
 
+console.log(path.resolve(__dirname, '../node_modules/react-icons'));
+
 const config: Configuration = {
   context: path.resolve(__dirname, '../src'),
 
@@ -41,44 +43,22 @@ const config: Configuration = {
               flags: 'g',
             },
           },
-          // {
-          //   loader: 'babel-loader',
-          //   query: {
-          //     // https://github.com/babel/babel-loader#options
-          //     cacheDirectory: isDebug,
-          //     // https://babeljs.io/docs/usage/options/
-          //     babelrc: false,
-          //     presets: [
-          //       ['es2015', {modules: false}],
-          //       // A Babel preset that can automatically determine the Babel plugins and polyfills
-          //       // https://github.com/babel/babel-preset-env
-          //       // ['env', {
-          //       //   targets: {
-          //       //     browsers: pkg.browserslist,
-          //       //   },
-          //       //   modules: false,
-          //       //   useBuiltIns: false,
-          //       //   debug: false,
-          //       // }],
-          //       // Experimental ECMAScript proposals
-          //       // https://babeljs.io/docs/plugins/#presets-stage-x-experimental-presets-
-          //       'stage-2',
-          //       'react',
-          //       ...isDebug ? [] : ['react-optimize'],
-          //     ],
-          //     plugins: [
-          //       'syntax-dynamic-import',
-          //       'transform-async-to-generator',
-          //       'transform-regenerator',
-          //       'transform-runtime',
-          //       ...isDebug ? ['transform-react-jsx-source'] : [],
-          //       ...isDebug ? ['transform-react-jsx-self'] : [],
-          //     ],
-          //   },
-          // },
-          'awesome-typescript-loader?useBabel=true',
+          'awesome-typescript-loader?useBabel=true&useCache=true',
         ],
         exclude: /node_modules/,
+      },
+      {
+        test: /react-icons\/(.)*(.js)$/,
+        loader: 'babel-loader',
+        query: {
+          presets: ['es2015', 'react'],
+        },
+      },
+      {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract({ use: ['style-loader', 'css-loader'] }),
+        include: /node_modules/,
+        exclude: path.resolve(__dirname, '../src'),
       },
       {
         test: /\.css$/,
@@ -95,27 +75,31 @@ const config: Configuration = {
               localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
               minimize: isDebug,
               discardComments: { removeAll: true },
+              camelCase: 'dashesOnly',
             },
           },
           {
             loader: 'postcss-loader',
             options: {
-              config: path.resolve(__dirname, './postcss.config.js'),
+              config: {
+                path: './tools/postcss.config.js',
+              },
             },
           },
         ],
+        exclude: /node_modules/,
       },
-      {
-        test: /\.scss$/,
-        loaders: ExtractTextPlugin.extract({
-          fallbackLoader: 'style-loader',
-          loader: [
-            `css-loader?${JSON.stringify({ sourceMap: isDebug, minimize: !isDebug })}`,
-            'postcss-loader?pack=sass',
-            'sass-loader',
-          ],
-        }),
-      },
+      // {
+      //   test: /\.scss$/,
+      //   loader: ExtractTextPlugin.extract({
+      //     fallback: 'style-loader',
+      //     use: [
+      //       `css-loader?${JSON.stringify({ sourceMap: isDebug, minimize: !isDebug })}`,
+      //       'postcss-loader?pack=sass',
+      //       'sass-loader',
+      //     ],
+      //   }),
+      // },
       {
         test: /\.json$/,
         loader: 'json-loader',
@@ -141,10 +125,11 @@ const config: Configuration = {
       },
       {
         test: /\.(graphql|gql)$/,
-        include: [
-          path.resolve(__dirname, '../src'),
-        ],
-        loader: 'raw-loader',
+        // include: [
+        //   path.resolve(__dirname, '../src'),
+        // ],
+        exclude: /node_modules/,
+        loader: 'graphql-tag/loader',
       },
     ],
   },

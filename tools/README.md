@@ -4,7 +4,7 @@
 
 * Cleans up the output `/build` directory (`clean.js`)
 * Copies static files to the output folder (`copy.js`)
-* Launches [Webpack](https://webpack.github.io/) compiler in a watch mode (via [webpack-middleware](https://github.com/kriasoft/webpack-middleware))
+* Launches [Webpack](https://webpack.github.io/) compiler in a watch mode (via [webpack-dev-middleware](https://github.com/webpack/webpack-dev-middleware))
 * Launches Node.js server from the compiled output folder (`runServer.js`)
 * Launches [Browsersync](https://browsersync.io/),
   [Hot Module Replacement](https://webpack.github.io/docs/hot-module-replacement), and

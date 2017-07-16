@@ -1,47 +1,21 @@
-import withStyles from 'isomorphic-style-loader/lib/withStyles';
+import * as cx from 'classnames';
 import * as React from 'react';
-import { FormattedRelative } from 'react-intl';
-import * as s from './Home.css';
-
-export interface INew {
-  title: string;
-  link: string;
-  pubDate: any;
-  content?: string;
-}
+import { connect } from 'react-redux';
+import { Route } from 'react-router-dom';
+import NewsFeed from '../NewsFeed';
 
 interface IHome extends React.Props<any> {
-  news: INew[];
+  user: string;
 }
 
-class Home extends React.Component<IHome, void> {
-  constructor(props) {
-    super(props);
-  }
-
+class Home extends React.Component<IHome> {
   public render() {
-    return (
-      <div className={s.root}>
-        <div className={s.container}>
-          <h1>React.js News</h1>
-          {/*{this.props.news.map((item) => (
-            <article key={item.link} className={s.newsItem}>
-              <h1 className={s.newsTitle}><a href={item.link}>{item.title}</a></h1>
-              {' '}
-              <span className={s.publishedDate}>
-                <FormattedRelative value={item.pubDate} />
-              </span>
-              <div
-                className={s.newsDesc}
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: item.content }}
-              />
-            </article>
-          ))}*/}
-        </div>
-      </div>
-    );
+    return (<Route exact path="/" component={NewsFeed} />);
   }
 }
 
-export default withStyles(s)(Home);
+const mapStateToProps = (state, ownProps) => ({
+  user: state.user,
+});
+
+export default connect(mapStateToProps)(Home);

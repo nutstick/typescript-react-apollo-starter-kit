@@ -1,4 +1,3 @@
 # Mutations
 type Mutation {
-  addOne(): Number
 }

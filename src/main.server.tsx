@@ -1,4 +1,5 @@
 import { createNetworkInterface } from 'apollo-client';
+import * as BluebirdPromise from 'bluebird';
 import * as bodyParser from 'body-parser';
 import * as chalk from 'chalk';
 import * as cookieParser from 'cookie-parser';
@@ -7,16 +8,14 @@ import * as express from 'express';
 import * as expressJwt from 'express-jwt';
 import { graphiqlExpress, graphqlExpress } from 'graphql-server-express';
 import * as helmet from 'helmet';
-import * as history from 'history';
 import * as jwt from 'jsonwebtoken';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
 import * as React from 'react';
-import { ApolloProvider, getDataFromTree } from 'react-apollo';
+import { getDataFromTree } from 'react-apollo';
 import * as ReactDOM from 'react-dom/server';
 import { Provider } from 'react-redux';
-import { createMemoryHistory, match, RouterContext } from 'react-router';
-import { syncHistoryWithStore } from 'react-router-redux';
+import { StaticRouter } from 'react-router';
 import App from './components/App';
 import Html, { IHtmlProps } from './components/Html';
 import { auth, locales, port } from './config';
@@ -26,9 +25,9 @@ import ServerInterface from './core/ServerInterface';
 import { configureStore } from './redux/configureStore';
 import { setLocale } from './redux/intl/actions';
 import { setRuntimeVariable } from './redux/runtime/actions';
-import routes from './routes';
+import Routes from './routes';
 import ErrorPage from './routes/Error/ErrorPage';
-import * as errorPageStyle from './routes/error/ErrorPage.css';
+import * as errorPageStyle from './routes/Error/ErrorPage.css';
 import { Schema } from './schema';
 import { database } from './schema/models';
 
@@ -58,6 +57,8 @@ database.connect((databaseError) => {
     console.log('%s MongoDB connection error. Please make sure MongoDB is running.', chalk.red('✗'));
   }
 
+  // InstallMockData();
+
   //
   // Register Node.js middleware
   // -----------------------------------------------------------------------------
@@ -77,6 +78,10 @@ database.connect((databaseError) => {
   }));
   app.use(passport.initialize());
 
+  if (__DEV__) {
+    app.enable('trust proxy');
+  }
+
   app.get('/login/facebook',
     passport.authenticate('facebook', { scope: ['email', 'user_location'], session: false }),
   );
@@ -84,15 +89,26 @@ database.connect((databaseError) => {
     passport.authenticate('facebook', { failureRedirect: '/login', session: false }),
     (req, res) => {
       const expiresIn = 60 * 60 * 24 * 180; // 180 days
-      const token = jwt.sign(req.user, auth.jwt.secret, { expiresIn });
+      const token = jwt.sign({
+        _id: req.user._id,
+      }, auth.jwt.secret, { expiresIn });
       res.cookie('id_token', token, { maxAge: 1000 * expiresIn, httpOnly: true });
       res.redirect('/');
     },
   );
 
+  app.get('/logout', (req, res) => {
+    console.log(req.user);
+    res.cookie('id_token', null);
+    req.logout();
+    console.log(req.user);
+    res.redirect('/');
+  });
+
   /**
    * GraphQL Initialize
    */
+
   app.use('/graphql', bodyParser.json(), graphqlExpress((req) => ({
     context: {
       database,
@@ -102,6 +118,7 @@ database.connect((databaseError) => {
     rootValue: { request: req },
     debug: __DEV__,
   })));
+
   if (process.env.NODE_ENV !== 'production') {
     app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
   }
@@ -111,20 +128,34 @@ database.connect((databaseError) => {
    */
   app.get('*', async (req, res, next) => {
     const location = req.url;
-    const memoryHistory = createMemoryHistory(req.originalUrl);
 
     const apolloClient = createApolloClient({
       ssrMode: true,
       networkInterface: new ServerInterface({
         schema: Schema,
         rootValue: { request: req },
+        context: {
+          database,
+          user: req.user,
+        },
+        debug: __DEV__,
       }),
+
+      // networkInterface: createNetworkInterface({
+      //   uri: '/graphql',
+      //   opts: {
+      //     credentials: 'same-origin',
+      //     // transfer request headers to networkInterface so that they're accessible to proxy server
+      //     // Addresses this issue: https://github.com/matthew-andrews/isomorphic-fetch/issues/83
+      //     headers: req.headers,
+      //   },
+      // }),
     });
 
     const store = configureStore({
       user: req.user || null,
     }, {
-      history: memoryHistory,
+      history: null,
       cookie: req.cookies,
       apolloClient,
     });
@@ -140,7 +171,6 @@ database.connect((databaseError) => {
     }));
 
     const css = new Set();
-
     const locale = req.query.lang || req.acceptsLanguages(locales);
     await store.dispatch(setLocale({
       locale,
@@ -159,45 +189,36 @@ database.connect((databaseError) => {
       client: apolloClient,
     };
 
-    match ({ history: memoryHistory, routes: routes(store), location: req.url },
-      (error, redirectLocation, renderProps) => {
-      if (error) {
-        return res.status(500).send(error.message);
-      } else if (redirectLocation) {
-        return res.redirect(302, redirectLocation.pathname + redirectLocation.search);
-      } else if (renderProps) {
-        /*console.log(ReactDOM.renderToString());
-        const component = (
-          <ApolloProvider client={apolloClient}>
-            <RouterContext {...renderProps} />
-          </ApolloProvider>
-        );*/
-        const component = (
-          <App context={context}>
-            <RouterContext {...renderProps} />
-          </App>
-        );
+    const component = (
+      <App context={context}>
+        <StaticRouter location={req.url} context={context}>
+          <Routes />
+        </StaticRouter>
+      </App>
+    );
+    // set children to match context
+    await getDataFromTree(component);
+    await BluebirdPromise.delay(0);
+    const children = await ReactDOM.renderToString(component);
+    // const children = ReactDOM.renderToString(component);
 
-        // set children to match context
-        const children = ReactDOM.renderToString(component);
+    const data: IHtmlProps = {
+      title: 'Typescript ReactQL Starter Kit',
+      description: 'React starter kit using Typescript 2 and Webpack 2.',
+      children,
+      state: context.store.getState(),
+      styles: [
+        { id: 'css', cssText: [...css].join('') },
+      ],
+    };
 
-        const data: IHtmlProps = {
-          title: 'React Starter Kit',
-          description: 'React starter kit using Typescript 2 and Webpack 2.',
-          children,
-          state: context.store.getState(),
-          styles: [
-            { id: 'css', cssText: [...css].join('') },
-          ],
-        };
+    if (__DEV__) {
+      console.log('Serializing store...');
+    }
 
-        // rendering html components
-        const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
-        res.status(200).send(`<!doctype html>${html}`);
-      } else {
-        res.status(404).send('Not found');
-      }
-    });
+    // rendering html components
+    const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
+    res.status(200).send(`<!doctype html>${html}`);
   });
 
   /**
@@ -207,8 +228,8 @@ database.connect((databaseError) => {
   pe.skipNodeFiles();
   pe.skipPackage('express');
 
-  app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-    console.log(pe.render(err)); // eslint-disable-line no-console
+  app.use((err, req, res, next) => {
+    console.log(pe.render(err));
     const html = ReactDOM.renderToStaticMarkup(
       <Html
         title="Internal Server Error"

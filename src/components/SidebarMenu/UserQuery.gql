@@ -1,0 +1,10 @@
+query User {
+  me {
+    _id
+    name,
+    faculty,
+    department
+    enrollYear
+    avatar
+  }
+}

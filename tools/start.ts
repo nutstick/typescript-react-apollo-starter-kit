@@ -43,10 +43,9 @@ async function start() {
       clientConfig.entry['client'] = ['react-hot-loader/patch', 'webpack-hot-middleware/client?reload=true', clientConfig.entry['client']];
       clientConfig.output.filename = clientConfig.output.filename.replace('[chunkhash', '[hash');
       clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace('[chunkhash', '[hash');
-      const loader = (<webpack.UseRule>
-        (<webpack.NewModule> clientConfig.module).rules
-          .find((x) => x.test === /\.ts(x?)$/)
-      );
+      const loader = (<any> clientConfig.module).rules
+          .find((x) => (<any>x).use.find((s) => s === 'awesome-typescript-loader?useBabel=true&useCache=true'));
+      (<any> loader).use.unshift('react-hot-loader/webpack')
       clientConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
       clientConfig.plugins.push(new webpack.NoEmitOnErrorsPlugin());
     }
@@ -56,7 +55,6 @@ async function start() {
       // IMPORTANT: webpack middleware can't access config,
       // so we should provide publicPath by ourselves
       publicPath: clientConfig.output.publicPath,
-
       // Pretty colored output
       stats: clientConfig.stats,
     });

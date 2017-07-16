@@ -6,15 +6,6 @@ You should use Apollo: \`client.query({ query, variables...})\` or \`client.muta
 Don't forget to enclose your query to gql\`…\` tag or import *.graphql file.
 See docs at http://dev.apollodata.com/core/apollo-client-api.html#ApolloClient\\.query`;
 
-interface IConfig {
-  method?: string;
-  headers?: {
-    [key: string]: string,
-  }
-  body?: string;
-  credentials?: string;
-}
-
 interface IOptions {
   skipCache?: boolean;
 }
@@ -22,7 +13,6 @@ interface IOptions {
 function createGraphqlRequest(apolloClient) {
   return async function graphqlRequest(queryOrString, variables, options: IOptions = {}) {
     if (__DEV__) {
-      // eslint-disable-next-line no-console
       console.error(graphqlRequestDeprecatedMessage);
     }
 
@@ -38,7 +28,8 @@ function createGraphqlRequest(apolloClient) {
 
     let isMutation = false;
     if (query.definitions) {
-      isMutation = query.definitions.some(definition => definition && (definition.operation === 'mutation'));
+      isMutation = query.definitions.some((definition) =>
+        (definition && (definition.operation === 'mutation')));
     }
     if (isMutation) {
       return apolloClient.mutate({ mutation: query, variables });
@@ -49,7 +40,7 @@ function createGraphqlRequest(apolloClient) {
 
 function createFetchKnowingCookie({ cookie }) {
   if (!process.env.BROWSER) {
-    return (url, options: IConfig = {}) => {
+    return (url, options: RequestInit = {}) => {
       const isLocalUrl = /^\/($|[^\/])/.test(url); // eslint-disable-line no-useless-escape
 
       // pass cookie only for itself.

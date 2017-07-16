@@ -1,7 +1,8 @@
 import * as React from 'react';
+import * as s from './NotFound.css';
 
 interface INotFound extends React.Props<any> {
-  title: String;
+  title: string;
 }
 
 export default class NotFound extends React.Component<INotFound, void> {
@@ -11,9 +12,9 @@ export default class NotFound extends React.Component<INotFound, void> {
 
   public render() {
     return (
-      <div>
-        <h1>{this.props.title}</h1>
-        <p>Sorry, the page you were trying to view does not exist.</p>
+      <div className={s.root} style={{ padding: '3rem' }}>
+        <h1 className={s.header}>404 Page not found</h1>
+        <p className={s.content}>Sorry, the page you were trying to view does not exist.</p>
       </div>
     );
   }

@@ -1,0 +1,10 @@
+.root {
+  padding: 2rem;
+
+  > .header {
+  
+  }
+  > .content {
+    color: #555;
+  }
+}
