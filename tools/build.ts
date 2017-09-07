@@ -12,7 +12,7 @@ import * as pkg from '../package.json';
 import bundle from './bundle';
 import clean from './clean';
 import copy from './copy';
-import extractMessages from './extractMessages';
+import messages from './messages';
 import render from './render';
 import run from './run';
 
@@ -22,7 +22,7 @@ import run from './run';
  */
 async function build() {
   await run(clean);
-  await run(extractMessages);
+  await run(messages);
   await run(copy);
   await run(bundle);
 

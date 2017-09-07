@@ -17,11 +17,14 @@ const RUNNING_REGEXP = /Listening on http:\/\/(.*?)\//;
 let server;
 let pending = true;
 const [, serverConfig] = config;
-const serverPath = path.join(serverConfig.output.path, serverConfig.output.filename);
+const serverPath = path.join(serverConfig.output.path, serverConfig.output.filename.replace('[name]', 'main.server'));
 
 // Launch or restart the Node.js server
 function runServer() {
-  return new Promise<any>((resolve) => {
+  return new Promise<{
+    host: any;
+    kill: any;
+  }>((resolve) => {
     function onStdOut(data) {
       const time = new Date().toTimeString();
       const match = data.toString('utf8').match(RUNNING_REGEXP);
@@ -41,7 +44,7 @@ function runServer() {
       server.kill('SIGTERM');
     }
 
-    server = (<any> cp).spawn('node', [serverPath], {
+    server = (cp as any).spawn('node', [serverPath], {
       env: Object.assign({ NODE_ENV: 'development' }, process.env),
       silent: false,
     });

@@ -2,11 +2,11 @@ import { transform } from 'babel-core';
 import * as BluebirdPromise from 'bluebird';
 import * as path from 'path';
 import * as ts from 'typescript';
+import * as pkg from '../package.json';
 import { locales } from '../src/config';
 import { glob, readFile, writeFile } from './lib/fs';
 
 import * as gaze from 'gaze';
-const pkg = require('../package.json');
 
 const GLOB_PATTERN = 'src/**/*.{js,jsx,ts,tsx}';
 const fileToMessages = {};
@@ -122,14 +122,14 @@ async function extractMessages() {
         },
       });
 
-      const result = (<any> transform(typescriptCode.outputText, {
+      const result = (transform(typescriptCode.outputText, {
         presets: [
           [ 'env', { targets: { node: 'current' } } ],
           'stage-2',
           'react',
         ],
         plugins: ['react-intl'],
-      })).metadata['react-intl'];
+      }) as any).metadata['react-intl'];
       if (result.messages && result.messages.length) {
         fileToMessages[posixName] = result.messages.sort(compareMessages);
       } else {

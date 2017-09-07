@@ -29,6 +29,7 @@ async function copy() {
       },
     }, null, 2)),
     copyFile('LICENSE.txt', 'dist/LICENSE.txt'),
+    copyFile('yarn.lock', 'dist/yarn.lock'),
     copyDir('public', 'dist/public'),
     copyDir('src/messages', 'dist/messages'),
   ]);

@@ -1,6 +1,6 @@
-import * as webpack from 'webpack';
 import { writeFile } from 'fs';
 import { open } from 'openurl';
+import * as webpack from 'webpack';
 import webpackConfig from './webpack.config';
 
 const isDebug = !process.argv.includes('--release');
@@ -20,7 +20,7 @@ function clientStats() {
       profile: true,
     };
 
-    webpack(clientConfig).run((err, stats) => {
+    webpack(clientConfig as any).run((err, stats) => {
       if (err) {
         reject(err);
         return;

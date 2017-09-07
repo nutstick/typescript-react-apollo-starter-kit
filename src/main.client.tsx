@@ -22,7 +22,9 @@ import { deepForceUpdate, ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
 import { configureStore } from './redux/configureStore';
+import { getIntl } from './redux/intl/actions';
 import Routes from './routes';
+
 const apolloClient = createApolloClient({
   networkInterface: createNetworkInterface({
     uri: '/graphql',
@@ -34,7 +36,9 @@ const apolloClient = createApolloClient({
   ssrForceFetchDelay: 100,
 });
 
+/* @intl-code-template addLocaleData(${lang}); */
 [en, cs].forEach(addLocaleData);
+/* @intl-code-template-end */
 
 const openSansObserver = new FontFaceObserver('Open Sans', {});
 
@@ -62,6 +66,9 @@ const context = {
   // Initialize a new Redux store
   // http://redux.js.org/docs/basics/UsageWithReact.html
   store,
+  storeSubscription: null,
+  // intl instance as it can be get with injectIntl
+  intl: store.dispatch(getIntl()),
 };
 
 // Switch off the native scroll restoration behavior and handle it manually
@@ -119,6 +126,7 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
 // Make taps on links and buttons work fast on mobiles
 (FastClick as any).attach(document.body);
 
+const container = document.getElementById('app');
 let appInstance;
 let currentLocation = history.location;
 
@@ -145,8 +153,8 @@ async function onLocationChange(location?, action?) {
       </BrowserRouter>
     </App>,
     document.getElementById('app'),
-    // TODO
-    () => onRenderComplete({ title: 'Coursetable' }, location),
+    // TODO:
+    () => onRenderComplete({ title: 'Home' }, location),
   );
 }
 
@@ -164,6 +172,21 @@ if (__DEV__) {
     ReactDOM.render(<ErrorReporter error={(event as any).error} />, document.getElementById('app'));
   });
 }
+
+let isHistoryObserved = false;
+export default function main() {
+  // Handle client-side navigation by using HTML5 History API
+  // For more information visit https://github.com/mjackson/history#readme
+  currentLocation = history.location;
+  if (!isHistoryObserved) {
+    isHistoryObserved = true;
+    history.listen(onLocationChange);
+  }
+  onLocationChange(currentLocation);
+}
+
+// globally accesible entry point
+(window as any).RSK_ENTRY = main;
 
 // Enable Hot Module Replacement (HMR)
 if (module.hot) {

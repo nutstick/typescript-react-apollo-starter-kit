@@ -15,7 +15,7 @@ import config from './webpack.config';
  */
 function bundle() {
   return new Promise((resolve, reject) => {
-    webpack(config).run((err, stats) => {
+    webpack(config as any).run((err, stats) => {
       if (err) {
         return reject(err);
       }
