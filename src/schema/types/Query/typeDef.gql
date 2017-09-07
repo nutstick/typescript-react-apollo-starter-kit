@@ -5,5 +5,7 @@ type Query {
   me: User
   search(search: String!): SearchResultPage
 
+  dynamicData(table: String!): DynacmicData
+
   intl(locale: String!): [IntlMessage]
 }

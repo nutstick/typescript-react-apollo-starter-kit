@@ -21,9 +21,6 @@ interface Window {
 interface NodeModule {
   hot?: any;
 }
-
-declare function _import<T>(path: string): Promise<T>;
-
 declare module 'react-router-scroll' {
   const _: any;
   export = _;
@@ -82,9 +79,13 @@ declare module '*.png' {
 }
 
 declare module 'isomorphic-style-loader/lib/withStyles' {
-  type ConstructClass<P> = ComponentClass<P> | StatelessComponent<P>;
   export interface WrapWithStyles {
     <P>(component: ConstructClass<P>): ConstructClass<P>;
   }
-  export default function withStyles(styles?: Object): WrapWithStyles;
+  export interface InferableComponentEnhancerWithProps<TProps> {
+    <P extends { new (...args: any[]): React.Component<any, any> }>(
+      component: P
+    ): React.Component<P>
+  }
+  export default function withStyles(styles?: Object): InferableComponentEnhancerWithProps;
 }

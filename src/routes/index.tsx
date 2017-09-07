@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import Layout from '../components/Layout';
-import Home from './Home';
-import NotFound from './NotFound';
+import { Layout } from '../components/Layout';
+import { HomePage } from './Home';
+import { NotFoundPage } from './NotFound';
 
 export const errorLoading = (err) => {
   console.error('Dynamic page loading failed', err);
@@ -13,11 +13,10 @@ const loadModule = (cb) => (componentModule) => {
 };
 
 export default (props) => (
-  <Layout>
+  <Layout ketasda="asdad" test="1232">
     <Switch>
-      <Route exact path="/" component={Home} />
-      <Route component={NotFound} />
+      <Route exact path="/" component={HomePage} />
+      <Route component={NotFoundPage} />
     </Switch>
   </Layout>
 );
-

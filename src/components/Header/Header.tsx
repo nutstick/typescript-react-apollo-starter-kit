@@ -26,7 +26,8 @@ const messages = defineMessages({
   },
 });
 
-class Header extends React.Component<void, void> {
+@withStyles(s)
+export class Header extends React.Component<{}, {}> {
   render() {
     return (
       <div className={s.root}>
@@ -50,5 +51,3 @@ class Header extends React.Component<void, void> {
     );
   }
 }
-
-export default withStyles(s)(Header);

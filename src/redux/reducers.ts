@@ -1,9 +1,17 @@
 import { routerReducer } from 'react-router-redux';
-import { combineReducers } from 'redux';
+import { combineReducers, Dispatch } from 'redux';
 import { intlReducers } from './intl/reducers';
 import { runtimeReducers } from './runtime/reducers';
 import { uiReducers } from './ui/reducers';
-import { userReducers } from './user/reducers';
+import { IUserState, userReducers } from './user/reducers';
+
+export interface IState {
+  user: IUserState;
+}
+
+export type MapStateToProps<TStateProps, TOwnProps> = (state: IState, ownProps?: TOwnProps) => TStateProps;
+export type MapDispatchToProps<TDispatchProps, TOwnProps> =
+          (dispatch: Dispatch<IState>, ownProps?: TOwnProps) => TDispatchProps;
 
 export const createReducer = (asyncReducers?: any) => {
   return combineReducers({

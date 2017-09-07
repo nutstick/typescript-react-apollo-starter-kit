@@ -4,9 +4,8 @@ import * as Redux from 'redux';
 import { applyMiddleware, compose, createStore as _createStore } from 'redux';
 import thunk from 'redux-thunk';
 import createHelpers from './createHelpers';
-import { IState } from './IState';
 import logger from './logger';
-import { createReducer, injectAsyncReducer } from './reducers';
+import { createReducer, injectAsyncReducer, IState } from './reducers';
 
 interface IStore extends Redux.Store<any> {
   asyncReducers?: any;
