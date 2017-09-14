@@ -1,15 +1,23 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { setLocale } from '../../redux/intl/actions';
+import { ISetLocale, setLocale } from '../../redux/intl/actions';
+import { IntlState } from '../../redux/intl/reducers';
 
-interface ILanguageSwitcherProps extends React.Props<any> {
-  currentLocale: string;
-  availableLocales: string[];
-  setLocale(state: any): Promise<boolean>;
+namespace LanguageSwitcher {
+  export interface IConnectState {
+    currentLocale: string;
+    availableLocales: string[];
+  }
+
+  export interface IConnectDispatch {
+    setLocale({ locale: string }): ISetLocale;
+  }
+
+  export type Props = IConnectState & IConnectDispatch;
 }
 
-const LanguageSwitcher: React.StatelessComponent<ILanguageSwitcherProps>
-  = ({ currentLocale, availableLocales, setLocale }) => {
+const LanguageSwitcher: React.StatelessComponent<LanguageSwitcher.Props>
+  = ({ currentLocale, availableLocales, setLocale: setLocale_ }) => {
   const isSelected = (locale) => locale === currentLocale;
   const localeDict = {
     'en-US': 'English',
@@ -26,7 +34,7 @@ const LanguageSwitcher: React.StatelessComponent<ILanguageSwitcherProps>
             <a
               href={`?lang=${locale}`}
               onClick={(e) => {
-                setLocale({ locale });
+                setLocale_({ locale });
                 e.preventDefault();
               }}
             >{localeName(locale)}</a>
@@ -38,13 +46,9 @@ const LanguageSwitcher: React.StatelessComponent<ILanguageSwitcherProps>
   );
 };
 
-const mapState = (state) => ({
+export default connect((state) => ({
   availableLocales: state.runtime.availableLocales,
   currentLocale: state.intl.locale,
-});
-
-const mapDispatch = {
+}), {
   setLocale,
-};
-
-export default connect(mapState, mapDispatch)(LanguageSwitcher);
+})(LanguageSwitcher);

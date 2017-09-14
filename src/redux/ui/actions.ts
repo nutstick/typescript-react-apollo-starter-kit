@@ -1,67 +1,65 @@
 import {
-  LEFT_SIDEBAR_EXPAND,
   LEFT_SIDEBAR_TOGGLE,
   RIGHT_SIDEBAR_TOGGLE,
-  SET_FLOATING_BUTTON_ACTIVE,
-  SET_FLOATING_BUTTON_DEACTIVE,
-  SET_FLOATING_BUTTON_TARGET,
+  SET_LEFT_SIDEBAR_EXPAND,
   SET_RIGHT_SIDEBAR_EXPAND,
   SET_SIDEBAR_EXPAND,
 } from './constants';
 
-export function setFloatingButtonActive() {
-  return {
-    type: SET_FLOATING_BUTTON_ACTIVE,
-  };
-}
-export function setFloatingButtonDeactive() {
-  return {
-    type: SET_FLOATING_BUTTON_DEACTIVE,
-  };
+export interface ISetSidebarExpand {
+  type: SET_SIDEBAR_EXPAND;
+  payload: string;
 }
 
-interface ISetFloatingButtonTarget {
-  url?: string;
-  icon: string;
+export interface IRightSidebarExpand {
+  type: SET_RIGHT_SIDEBAR_EXPAND;
+  payload: boolean;
 }
 
-export function setFloatingButtonTarget({ url, icon }: ISetFloatingButtonTarget) {
-  return {
-    type: SET_FLOATING_BUTTON_TARGET,
-    payload: {
-      url,
-      icon,
-    },
-  };
+export interface IRightSidebarToggle {
+  type: RIGHT_SIDEBAR_TOGGLE;
 }
 
-export function setSidebarExpand(expand) {
+export interface ILeftSidebarExpand {
+  type: SET_LEFT_SIDEBAR_EXPAND;
+  payload: boolean;
+}
+
+export interface ILeftSidebarToggle {
+  type: LEFT_SIDEBAR_TOGGLE;
+}
+
+export type UIAction = ISetSidebarExpand | IRightSidebarExpand | IRightSidebarToggle
+  | ILeftSidebarExpand | ILeftSidebarToggle;
+
+export function setSidebarExpand(expand): ISetSidebarExpand {
   return {
     type: SET_SIDEBAR_EXPAND,
     payload: expand,
   };
 }
 
-export function rightSidebarExpand(expanded) {
+export function rightSidebarExpand(expanded): IRightSidebarExpand {
   return {
     type: SET_RIGHT_SIDEBAR_EXPAND,
     payload: expanded,
   };
 }
 
-export function rightSidebarToggle() {
+export function rightSidebarToggle(): IRightSidebarToggle {
   return {
     type: RIGHT_SIDEBAR_TOGGLE,
   };
 }
 
-export function leftSidebarExpand() {
+export function leftSidebarExpand(expanded): ILeftSidebarExpand {
   return {
-    type: LEFT_SIDEBAR_EXPAND,
+    type: SET_LEFT_SIDEBAR_EXPAND,
+    payload: expanded,
   };
 }
 
-export function leftSidebarToggle() {
+export function leftSidebarToggle(): ILeftSidebarToggle {
   return {
     type: LEFT_SIDEBAR_TOGGLE,
   };

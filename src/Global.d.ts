@@ -1,6 +1,9 @@
+/// <reference types="react" />
 /**
  * Type declerations for global development variables
  */
+
+// import { ComponentClass, StatelessComponent } from 'react';
 
 declare var global: any;
 
@@ -79,13 +82,9 @@ declare module '*.png' {
 }
 
 declare module 'isomorphic-style-loader/lib/withStyles' {
-  export interface WrapWithStyles {
-    <P>(component: ConstructClass<P>): ConstructClass<P>;
+  export declare type CompositeComponent<P> = React.ComponentClass<P> | React.StatelessComponent<P>;
+  export interface ComponentDecorator<TOwnProps> {
+    (component: CompositeComponent<TOwnProps>): ComponentClass<TOwnProps>;
   }
-  export interface InferableComponentEnhancerWithProps<TProps> {
-    <P extends { new (...args: any[]): React.Component<any, any> }>(
-      component: P
-    ): React.Component<P>
-  }
-  export default function withStyles(styles?: Object): InferableComponentEnhancerWithProps;
+  export default function withStyles<TProps = {}>(styles?: Object): ComponentDecorator<TProps>;
 }

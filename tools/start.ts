@@ -95,11 +95,11 @@ async function start() {
   clientConfig.module.rules = clientConfig.module.rules.filter(
     (x) => x.loader !== 'null-loader',
   );
-  const { options } = clientConfig.module.rules.find(
-    (x) => x.loader === 'awesome-typescript-loader',
-  );
-  
-  options.babelOptions.plugins = ['react-hot-loader/babel'].concat(options.babelOptions.plugins || []);
+  // const { options } = clientConfig.module.rules.find(
+  //   (x) => x.loader === 'awesome-typescript-loader',
+  // );
+
+  // options.babelOptions.plugins = ['react-hot-loader/babel'].concat(options.babelOptions.plugins || []);
   (clientConfig as any).plugins.push(
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
@@ -231,7 +231,8 @@ async function start() {
   console.info(`[${format(timeStart)}] Launching server...`);
 
   // Load compiled src/server.js as a middleware
-  app = require('../build/server').default;
+  console.log(require('../dist/server'));
+  app = require('../dist/server').default;
   appPromiseIsResolved = true;
   appPromiseResolve();
 

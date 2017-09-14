@@ -13,7 +13,7 @@ const loadModule = (cb) => (componentModule) => {
 };
 
 export default (props) => (
-  <Layout ketasda="asdad" test="1232">
+  <Layout test="1232">
     <Switch>
       <Route exact path="/" component={HomePage} />
       <Route component={NotFoundPage} />

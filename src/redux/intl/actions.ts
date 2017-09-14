@@ -1,10 +1,45 @@
+import ApolloClient from 'apollo-client';
 import { IntlProvider } from 'react-intl';
-import {
-  SET_LOCALE_ERROR,
-  SET_LOCALE_START,
-  SET_LOCALE_SUCCESS,
-} from './constants';
+import { Dispatch } from 'react-redux';
+import { State } from '../';
+import * as constants from './constants';
 import queryIntl from './intl.gql';
+
+interface IQueryIntl {
+  intl: Array<{
+    id: string,
+    message: string,
+  }>;
+}
+
+export type ISetLocale = (dispatch: Dispatch<State>, getState: () => void, context: { client: ApolloClient }) => any;
+
+export interface ISetLocaleStart {
+  type: constants.SET_LOCALE_START,
+  payload: {
+    locale: string,
+  };
+}
+
+export interface ISetLocaleSuccess {
+  type: constants.SET_LOCALE_SUCCESS;
+  payload: {
+    locale: string,
+    messages: {
+      [key: string]: string;
+    },
+  };
+}
+
+export interface ISetLocaleError {
+  type: constants.SET_LOCALE_ERROR;
+  payload: {
+    locale: string,
+    error: Error,
+  };
+}
+
+export type IntlAction = ISetLocaleStart | ISetLocaleSuccess | ISetLocaleError;
 
 function getIntlFromState(state) {
   const intl = (state && state.intl) || {};
@@ -23,23 +58,23 @@ export function getIntl() {
   return (dispatch, getState) => getIntlFromState(getState());
 }
 
-export function setLocale({ locale }) {
+export function setLocale({ locale }): ISetLocale {
   return async (dispatch, getState, { client }) => {
     dispatch({
-      type: SET_LOCALE_START,
+      type: constants.SET_LOCALE_START,
       payload: {
         locale,
       },
     });
 
     try {
-      const { data } = await client.query({ queryIntl, variables: { locale }});
+      const { data } = await client.query<IQueryIntl>({ query: queryIntl, variables: { locale }});
       const messages = data.intl.reduce((msgs, msg) => {
         msgs[msg.id] = msg.message; // eslint-disable-line no-param-reassign
         return msgs;
       }, {});
       dispatch({
-        type: SET_LOCALE_SUCCESS,
+        type: constants.SET_LOCALE_SUCCESS,
         payload: {
           locale,
           messages,
@@ -56,7 +91,7 @@ export function setLocale({ locale }) {
       return getIntlFromState(getState());
     } catch (error) {
       dispatch({
-        type: SET_LOCALE_ERROR,
+        type: constants.SET_LOCALE_ERROR,
         payload: {
           locale,
           error,

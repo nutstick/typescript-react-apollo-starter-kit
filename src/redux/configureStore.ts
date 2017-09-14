@@ -3,9 +3,9 @@ import { routerMiddleware } from 'react-router-redux';
 import * as Redux from 'redux';
 import { applyMiddleware, compose, createStore as _createStore } from 'redux';
 import thunk from 'redux-thunk';
+import { createReducer, injectAsyncReducer, State } from './';
 import createHelpers from './createHelpers';
 import logger from './logger';
-import { createReducer, injectAsyncReducer, IState } from './reducers';
 
 interface IStore extends Redux.Store<any> {
   asyncReducers?: any;
@@ -18,7 +18,7 @@ interface IHelperConfig {
   apolloClient: ApolloClient;
 }
 
-export function configureStore(initialState: IState, helpersConfig?: IHelperConfig): Redux.Store<any> {
+export function configureStore(initialState: State, helpersConfig?: IHelperConfig): Redux.Store<any> {
   const { apolloClient } = helpersConfig;
   let middleware: Redux.Middleware[] = [
     // routerMiddleware(helpersConfig.history),
@@ -47,8 +47,8 @@ export function configureStore(initialState: IState, helpersConfig?: IHelperConf
 
   if (process.env.NODE_ENV === 'development' && module.hot) {
     // FIXME reducer
-    (module as any).hot.accept('./reducers', () => {
-      store.replaceReducer((require('./reducers')));
+    (module as any).hot.accept('./', () => {
+      store.replaceReducer((require('./')));
     });
   }
 

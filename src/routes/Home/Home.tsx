@@ -1,29 +1,32 @@
 import * as cx from 'classnames';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
 import { compose } from 'redux';
-import { connect } from '../../redux/connect';
-import { MapStateToProps } from '../../redux/reducers';
-import { IUserState } from '../../redux/user/reducers';
+import { State } from '../../redux';
+import { UserState } from '../../redux/user/reducers';
 import * as s from './Home.css';
 
 export namespace Home {
   export interface IConnectState {
-    user: IUserState;
+    user: UserState;
   }
 
   export type Props = IConnectState;
 }
 
-const mapStateToProps: MapStateToProps<Home.Props, Home.IConnectState> = (state) => ({
-  user: state.user,
+const mapStateToProps = ({ user }: State) => ({
+  user,
 });
 
-@withStyles(s)
-@connect(mapStateToProps)
 export class Home extends React.Component<Home.Props> {
   public render() {
     return (<h2>Home Page</h2>);
   }
 }
+
+export default compose(
+  withStyles(s),
+  connect(mapStateToProps),
+)(Home);

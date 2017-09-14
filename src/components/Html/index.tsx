@@ -41,14 +41,14 @@ const Html: React.StatelessComponent<IHtmlProps> = ({ title, description, styles
       )}
       <script defer src="/assets/vendor.js"></script>
       <script defer src="/assets/client.js"></script>
-      {analytics.google.trackingId && (
+      {analytics.googleTrackingId && (
         <script
           dangerouslySetInnerHTML={{ __html:
           'window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;' +
-          `ga('create','${analytics.google.trackingId}','auto');ga('send','pageview')` }}
+          `ga('create','${analytics.googleTrackingId}','auto');ga('send','pageview')` }}
         />
       )}
-      {analytics.google.trackingId && (
+      {analytics.googleTrackingId && (
         <script src="https://www.google-analytics.com/analytics.js" async defer />
       )}
     </body>

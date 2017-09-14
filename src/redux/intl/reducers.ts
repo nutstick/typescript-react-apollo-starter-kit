@@ -1,10 +1,11 @@
+import { IntlAction } from './actions';
 import {
   SET_LOCALE_ERROR,
   SET_LOCALE_START,
   SET_LOCALE_SUCCESS,
 } from './constants';
 
-export interface IIntlState {
+export interface IntlState {
   initialNow: Date;
   locale: string;
   newLocale: string;
@@ -15,7 +16,7 @@ export interface IIntlState {
   };
 }
 
-export const intlReducers = function intl(state: IIntlState = null, action) {
+export const intlReducers = function intl(state: IntlState = null, action: IntlAction) {
   if (state === null) {
     return {
       initialNow: Date.now(),

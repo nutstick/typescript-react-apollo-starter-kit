@@ -2,10 +2,11 @@ import gql from 'graphql-tag';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
 import { graphql } from 'react-apollo';
+import { connect } from 'react-redux';
 import { Link, Route, Switch } from 'react-router-dom';
 import { compose } from 'redux';
-import { connect } from '../../redux/connect';
-import { IUserState } from '../../redux/user/reducers';
+import { State } from '../../redux';
+import { UserState } from '../../redux/user/reducers';
 import { Header } from '../Header';
 import { Main } from '../Main';
 import NoMatch from './NoMatch';
@@ -18,7 +19,7 @@ const MdAdd = require('react-icons/lib/md/add');
 
 namespace Layout {
   export interface IConnectState {
-    user: IUserState;
+    user: UserState;
   }
 
   export interface IProps extends React.Props<any> {
@@ -28,11 +29,10 @@ namespace Layout {
   export type Props = IConnectState & IProps;
 }
 
-const mapStateToProps = (state: any, ownProps: Layout.IProps) => ({
+const mapStateToProps = (state: State, ownProps: Layout.IProps) => ({
   user: state.user,
 });
 
-// @withStyles(s)
 export class Layout extends React.Component<Layout.Props> {
   public render() {
     return (

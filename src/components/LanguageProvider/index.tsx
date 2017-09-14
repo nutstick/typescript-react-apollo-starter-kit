@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { IntlProvider } from 'react-intl';
-import { createSelector } from 'reselect';
-import { connect } from '../../redux/connect';
+import { connect } from 'react-redux';
 
 namespace LanguageProvider {
   export interface IProps {
@@ -20,8 +19,7 @@ const mapStateToProps = (state): LanguageProvider.IConnectedState => ({
   locale: state.intl.locale,
 });
 
-@connect(mapStateToProps)
-export default class LanguageProvider extends React.Component<LanguageProvider.Props> {
+class LanguageProvider extends React.Component<LanguageProvider.Props> {
   public render() {
     return (
       <IntlProvider locale={this.props.locale} messages={this.props.messages[this.props.locale]}>
@@ -30,3 +28,5 @@ export default class LanguageProvider extends React.Component<LanguageProvider.P
     );
   }
 }
+
+export default connect(mapStateToProps)(LanguageProvider);
