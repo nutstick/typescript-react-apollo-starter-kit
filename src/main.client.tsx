@@ -4,6 +4,8 @@
 // Load the favicon, the manifest.json file and the .htaccess file
 // import 'file?name=[name].[ext]!./favicon.ico';
 // Import all the third party stuff
+import 'whatwg-fetch';
+
 import { createNetworkInterface } from 'apollo-client';
 import * as FastClick from 'fastclick';
 import * as FontFaceObserver from 'fontfaceobserver';
@@ -12,8 +14,10 @@ import * as React from 'react';
 import { ApolloProvider } from 'react-apollo';
 import * as ReactDOM from 'react-dom';
 import { addLocaleData } from 'react-intl';
+/* @intl-code-template import ${lang} from 'react-intl/locale-data/${lang}'; */
 import cs from 'react-intl/locale-data/cs';
 import en from 'react-intl/locale-data/en';
+/* @intl-code-template-end */
 import { BrowserRouter } from 'react-router-dom';
 import { ConnectedRouter } from 'react-router-redux';
 import App from './components/App';
@@ -21,6 +25,7 @@ import createApolloClient from './core/createApolloClient';
 import { deepForceUpdate, ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
+import createFetch from './createFetch';
 import { configureStore } from './redux/configureStore';
 import { getIntl } from './redux/intl/actions';
 import Routes from './routes';
@@ -37,7 +42,8 @@ const apolloClient = createApolloClient({
 });
 
 /* @intl-code-template addLocaleData(${lang}); */
-[en, cs].forEach(addLocaleData);
+addLocaleData(en);
+addLocaleData(cs);
 /* @intl-code-template-end */
 
 const openSansObserver = new FontFaceObserver('Open Sans', {});
@@ -48,8 +54,16 @@ openSansObserver.load().then(() => {
   document.body.classList.remove('font-loaded');
 });
 
-const store = configureStore(window.__INITIAL_STATE__, {
+// Universal HTTP client
+const fetch = createFetch(self.fetch, {
+  baseUrl: window.App.apiUrl,
+});
+
+// Initialize a new Redux store
+// http://redux.js.org/docs/basics/UsageWithReact.html
+const store = configureStore(window.App.state, {
   history,
+  fetch,
   apolloClient,
 });
 
@@ -123,9 +137,6 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
   };
 };
 
-// Make taps on links and buttons work fast on mobiles
-(FastClick as any).attach(document.body);
-
 const container = document.getElementById('app');
 let appInstance;
 let currentLocation = history.location;
@@ -186,7 +197,7 @@ export default function main() {
 }
 
 // globally accesible entry point
-(window as any).RSK_ENTRY = main;
+window.RSK_ENTRY = main;
 
 // Enable Hot Module Replacement (HMR)
 if (module.hot) {

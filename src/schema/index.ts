@@ -15,12 +15,12 @@ const modules = [
   User,
   IntlMessage,
   Query,
-  Mutation,
+  // Mutation,
 ];
 
 const resolvers = Object.assign({
     Date: GraphQLDate,
-    Time: GraphQLString,
+    // Time: GraphQLString,
   },
   ...(modules.map((m) => m.resolver).filter((res) => res)),
 );

@@ -18,10 +18,12 @@ import * as WriteFilePlugin from 'write-file-webpack-plugin';
 import clean from './clean';
 import copy from './copy';
 import run, { format } from './run';
-import runServer from './runServer';
 import webpackConfig from './webpack.config';
 
 const isDebug = !process.argv.includes('--release');
+process.argv.push('--watch');
+
+const [clientConfig, serverConfig] = webpackConfig;
 
 const watchOptions = {
   // Watching may not work with NFS and machines in VirtualBox
@@ -60,7 +62,6 @@ function createCompilationPromise(name, compiler, config) {
 }
 
 let server;
-
 /**
  * Launches a development web server with "live reload" functionality -
  * synchronizing URLs, interactions and code changes across multiple devices.
@@ -75,54 +76,41 @@ async function start() {
   server.use(express.static(path.resolve(__dirname, '../public')));
 
   // Configure client-side hot module replacement
-  const clientConfig = webpackConfig.find((config) => config.name === 'client');
-  (clientConfig as any).entry.client = [
+  (clientConfig.entry as webpack.Entry).client = [
     'react-error-overlay',
     'react-hot-loader/patch',
-    'webpack-hot-middleware/client?name=client&reload=true',
+    'webpack-hot-middleware/client?reload=true',
   ]
-    .concat((clientConfig as any).entry.client)
-    .sort((a, b) => (b as any).includes('polyfill') - (b as any).includes('polyfill'));
+    .concat((clientConfig.entry as webpack.Entry).client)
+    .sort((a, b) => (b.includes('polyfill') as any) - (a.includes('polyfill') as any));
 
-  clientConfig.output.filename = clientConfig.output.filename.replace(
-    'chunkhash',
-    'hash',
-  );
-  clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace(
-    'chunkhash',
-    'hash',
-  );
-  clientConfig.module.rules = clientConfig.module.rules.filter(
-    (x) => x.loader !== 'null-loader',
-  );
-  // const { options } = clientConfig.module.rules.find(
-  //   (x) => x.loader === 'awesome-typescript-loader',
-  // );
-
+  clientConfig.output.filename = clientConfig.output.filename.replace('[chunkhash', '[hash');
+  clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace('[chunkhash', '[hash');
+  // const { options } = (clientConfig.module as webpack.NewModule).rules
+  //   .find((x) => (x as any).loader === 'awesome-typescript-loader') as webpack.NewLoaderRule;
   // options.babelOptions.plugins = ['react-hot-loader/babel'].concat(options.babelOptions.plugins || []);
-  (clientConfig as any).plugins.push(
+
+  clientConfig.plugins.push(
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.NamedModulesPlugin(),
   );
 
-  // Configure server-side hot module replacement
-  const serverConfig = webpackConfig.find((config) => config.name === 'server');
-  (serverConfig as any).output.hotUpdateMainFilename = 'updates/[hash].hot-update.json';
-  (serverConfig as any).output.hotUpdateChunkFilename = 'updates/[id].[hash].hot-update.js';
-  serverConfig.module.rules = serverConfig.module.rules.filter(
-    (x) => x.loader !== 'null-loader',
-  );
-  (serverConfig as any).plugins.push(
+  // Save the server-side bundle files to the file system after compilation
+  // https://github.com/webpack/webpack-dev-server/issues/62
+  serverConfig.output.hotUpdateMainFilename = 'updates/[hash].hot-update.json';
+  serverConfig.output.hotUpdateChunkFilename = 'updates/[id].[hash].hot-update.js';
+  serverConfig.plugins.push(
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.NamedModulesPlugin(),
   );
+  serverConfig.plugins.push(new WriteFilePlugin({ log: false }));
 
   // Configure compilation
   await run(clean);
 
-  const multiCompiler = webpack((webpackConfig as any));
+  const multiCompiler = webpack(webpackConfig);
   const clientCompiler = (multiCompiler as any).compilers.find(
     (compiler) => compiler.name === 'client',
   );
@@ -160,7 +148,6 @@ async function start() {
       return;
     }
     appPromiseIsResolved = false;
-    // eslint-disable-next-line no-return-assign
     appPromise = new Promise((resolve) => (appPromiseResolve = resolve));
   });
 
@@ -221,6 +208,7 @@ async function start() {
       });
     }
   });
+
   // Wait until both client-side and server-side bundles are ready
   await clientPromise;
   await serverPromise;
@@ -231,19 +219,27 @@ async function start() {
   console.info(`[${format(timeStart)}] Launching server...`);
 
   // Load compiled src/server.js as a middleware
-  console.log(require('../dist/server'));
-  app = require('../dist/server').default;
+  app = require('../dist/main.server').default;
   appPromiseIsResolved = true;
   appPromiseResolve();
 
   // Launch the development server with Browsersync and HMR
   await new Promise((resolve, reject) =>
-    (browserSync.create() as any).init({
+    browserSync.create().init({
       // https://www.browsersync.io/docs/options
-      server: 'src/server.js',
+      // server: 'src/main.server.tsx',
       middleware: [server],
       open: !process.argv.includes('--silent'),
-      ...(isDebug ? {} : { notify: false, ui: false }),
+      ...(isDebug ? {
+        online: !!process.env.ONLINE || false,
+        ghostmode: !!process.env.GHOSTMODE || false,
+        notify: false,
+        scrollProportionally: false,
+        logFileChanges: false,
+        logSnippet: false,
+        minify: false,
+        timestamps: false,
+      } : { notify: false, ui: false }),
     }, (error, bs) => (error ? reject(error) : resolve(bs))),
   );
 

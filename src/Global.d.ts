@@ -10,7 +10,7 @@ declare var global: any;
 declare var __DEV__: boolean;
 
 // tslint:disable-next-line
-interface Window {
+declare interface Window {
   // A hack for the Redux DevTools Chrome extension.
   __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: <F extends Function>(f: F) => F;
   __INITIAL_STATE__?: any;
@@ -18,6 +18,12 @@ interface Window {
   devToolsExtension?: any;
   Intl?: any;
   ga: any;
+  RSK_ENTRY: any;
+  App: {
+    apiUrl: string,
+    state: any,
+    lang: string,
+  }
 }
 
 // tslint:disable-next-line

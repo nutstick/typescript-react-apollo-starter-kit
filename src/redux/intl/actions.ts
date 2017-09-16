@@ -3,7 +3,7 @@ import { IntlProvider } from 'react-intl';
 import { Dispatch } from 'react-redux';
 import { State } from '../';
 import * as constants from './constants';
-import queryIntl from './intl.gql';
+import * as queryIntl from './intl.gql';
 
 interface IQueryIntl {
   intl: Array<{
@@ -15,7 +15,7 @@ interface IQueryIntl {
 export type ISetLocale = (dispatch: Dispatch<State>, getState: () => void, context: { client: ApolloClient }) => any;
 
 export interface ISetLocaleStart {
-  type: constants.SET_LOCALE_START,
+  type: constants.SET_LOCALE_START;
   payload: {
     locale: string,
   };

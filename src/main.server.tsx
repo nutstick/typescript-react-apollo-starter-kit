@@ -6,11 +6,12 @@ import * as cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
 import * as expressGraphQL from 'express-graphql';
-import { UnauthorizedError as Jwt401Error } from 'express-jwt';
 import * as expressJwt from 'express-jwt';
-import requestLanguage from 'express-request-language';
+import { UnauthorizedError as Jwt401Error } from 'express-jwt';
+import * as requestLanguage from 'express-request-language';
 import * as helmet from 'helmet';
 import * as jwt from 'jsonwebtoken';
+import * as nodeFetch from 'node-fetch';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
 import * as React from 'react';
@@ -18,13 +19,14 @@ import { getDataFromTree } from 'react-apollo';
 import * as ReactDOM from 'react-dom/server';
 import { Provider } from 'react-redux';
 import { StaticRouter } from 'react-router';
+import * as assets from './assets.json';
 import App from './components/App';
-import Html, { IHtmlProps } from './components/Html';
-import { auth, locales, port } from './config';
-import config from './config';
+import { Html } from './components/Html';
+import { api, auth, locales, port } from './config';
 import createApolloClient from './core/createApolloClient';
 import passport from './core/passport';
 import ServerInterface from './core/ServerInterface';
+import createFetch from './createFetch';
 import { configureStore } from './redux/configureStore';
 import { setLocale } from './redux/intl/actions';
 import { setRuntimeVariable } from './redux/runtime/actions';
@@ -33,11 +35,14 @@ import ErrorPage from './routes/Error/ErrorPage';
 import * as errorPageStyle from './routes/Error/ErrorPage.css';
 import { Schema } from './schema';
 import { database } from './schema/models';
-
 /**
  * Express app
  */
-const app = express();
+interface HotExpress extends express.Express {
+  hot: any;
+}
+
+const app = express() as HotExpress;
 
 //
 // Tell any CSS tooling (such as Material UI) to use all vendor prefixes if the
@@ -53,7 +58,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(
   requestLanguage({
-    languages: config.locales,
+    languages: locales,
     queryName: 'lang',
     cookie: {
       name: 'lang',
@@ -80,6 +85,7 @@ app.use(expressJwt({
 app.use((err, req, res, next) => {
   // eslint-disable-line no-unused-vars
   if (err instanceof Jwt401Error) {
+    // tslint:disable-next-line:no-console
     console.error('[express-jwt-error]', req.cookies.id_token);
     // `clearCookie`, otherwise user can't use web-app until cookie expires
     res.clearCookie('id_token');
@@ -108,16 +114,14 @@ app.get('/login/facebook/callback',
 );
 
 app.get('/logout', (req, res) => {
-  console.log(req.user);
   res.cookie('id_token', null);
   req.logout();
-  console.log(req.user);
   res.redirect('/');
 });
 
-/**
- * GraphQL Initialize
- */
+//
+// Register API middleware
+// -----------------------------------------------------------------------------
 const graphqlMiddleware = expressGraphQL((req) => ({
   schema: Schema,
   graphiql: __DEV__,
@@ -127,41 +131,34 @@ const graphqlMiddleware = expressGraphQL((req) => ({
 
 app.use('/graphql', graphqlMiddleware);
 
-/**
- * Register server-side rendering middleware
- */
+//
+// Register server-side rendering middleware
+// -----------------------------------------------------------------------------
 app.get('*', async (req, res, next) => {
   const location = req.url;
 
   const apolloClient = createApolloClient({
-    ssrMode: true,
     networkInterface: new ServerInterface({
       schema: Schema,
       rootValue: { request: req },
-      context: {
-        database,
-        user: req.user,
-      },
-      debug: __DEV__,
     }),
+    ssrMode: true,
+  });
 
-    // networkInterface: createNetworkInterface({
-    //   uri: '/graphql',
-    //   opts: {
-    //     credentials: 'same-origin',
-    //     // transfer request headers to networkInterface so that they're accessible to proxy server
-    //     // Addresses this issue: https://github.com/matthew-andrews/isomorphic-fetch/issues/83
-    //     headers: req.headers,
-    //   },
-    // }),
+  // Universal HTTP client
+  const fetch = createFetch(nodeFetch, {
+    baseUrl: api.serverUrl,
+    cookie: req.headers.cookie,
+    // apolloClient,
   });
 
   const store = configureStore({
     user: req.user || null,
   }, {
     history: null,
-    cookie: req.cookies,
+    cookie: req.headers.cookies,
     apolloClient,
+    fetch,
   });
 
   store.dispatch(setRuntimeVariable({
@@ -171,16 +168,17 @@ app.get('*', async (req, res, next) => {
 
   store.dispatch(setRuntimeVariable({
     name: 'availableLocales',
-    value: config.locales,
+    value: locales,
   }));
 
-  const css = new Set();
-  const locale = req.query.lang || req.acceptsLanguages(locales);
+  const locale = req.language;
   const intl = await store.dispatch(
     setLocale({
       locale,
     }),
   );
+
+  const css = new Set();
 
   // Global (context) variables that can be easily accessed from any React component
   // https://facebook.github.io/react/docs/context.html
@@ -191,14 +189,18 @@ app.get('*', async (req, res, next) => {
       // eslint-disable-next-line no-underscore-dangle
       styles.forEach((style) => css.add(style._getCss()));
     },
+    fetch,
     store,
+    storeSubscription: null,
+    // Apollo Client for use with react-apollo
     client: apolloClient,
+    // intl instance as it can be get with injectIntl
     intl,
   };
 
   const component = (
     <App context={context}>
-      <StaticRouter location={req.url} context={context}>
+      <StaticRouter location={location} context={context}>
         <Routes />
       </StaticRouter>
     </App>
@@ -207,19 +209,24 @@ app.get('*', async (req, res, next) => {
   await getDataFromTree(component);
   await BluebirdPromise.delay(0);
   const children = await ReactDOM.renderToString(component);
-  // const children = ReactDOM.renderToString(component);
 
-  const data: IHtmlProps = {
+  const data: Html.IProps = {
     title: 'Typescript ReactQL Starter Kit',
     description: 'React starter kit using Typescript 2 and Webpack 2.',
-    children,
-    state: context.store.getState(),
     styles: [
       { id: 'css', cssText: [...css].join('') },
     ],
+    scripts: [assets.vendor.js, assets.client.js],
+    app: {
+      apiUrl: api.clientUrl,
+      state: context.store.getState(),
+      lang: locale,
+    },
+    children,
   };
 
   if (__DEV__) {
+    // tslint:disable-next-line:no-console
     console.log('Serializing store...');
   }
 
@@ -228,20 +235,23 @@ app.get('*', async (req, res, next) => {
   res.status(200).send(`<!doctype html>${html}`);
 });
 
-/**
- * Error handling
- */
+//
+// Error handling
+// -----------------------------------------------------------------------------
 const pe = new PrettyError();
 pe.skipNodeFiles();
 pe.skipPackage('express');
 
 app.use((err, req, res, next) => {
+  const locale = req.language;
+  // tslint:disable-next-line:no-console
   console.log(pe.render(err));
   const html = ReactDOM.renderToStaticMarkup(
     <Html
       title="Internal Server Error"
       description={err.message}
-      styles={[{ id: 'css', cssText: errorPageStyle._getCss() }]} // eslint-disable-line no-underscore-dangle
+      styles={[{ id: 'css', cssText: errorPageStyle._getCss() }]}
+      app={{ lang: locale }}
     >
       {ReactDOM.renderToString(<ErrorPage error={err} />)}
     </Html>,
@@ -249,14 +259,17 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.send(`<!doctype html>${html}`);
 });
+
 //
 // Launch the server
 // -----------------------------------------------------------------------------
+// tslint:disable-next-line:no-console
 const promise = database.connect().catch((err) => console.error(err.stack));
 if (!module.hot) {
   promise.then(() => {
-    app.listen(config.port, () => {
-      console.info(`The server is running at http://localhost:${config.port}/`);
+    app.listen(port, () => {
+      // tslint:disable-next-line:no-console
+      console.info(`The server is running at http://localhost:${port}/`);
     });
   });
 }
@@ -265,7 +278,7 @@ if (!module.hot) {
 // Hot Module Replacement
 // -----------------------------------------------------------------------------
 if (module.hot) {
-  (app as any).hot = module.hot;
+  app.hot = module.hot;
   module.hot.accept('./routes');
 }
 

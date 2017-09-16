@@ -1,58 +1,74 @@
 import * as React from 'react';
+import * as serialize from 'serialize-javascript';
 import { analytics } from '../../config';
 
-export interface IHtmlProps extends React.Props<any> {
-  title: string;
-  description: string;
-  styles: Array<{
-    id: string,
-    cssText: string,
-  }>;
-  children?: string;
-  state?: any;
+export namespace Html {
+  export interface IProps extends React.Props<any> {
+    title: string;
+    description: string;
+    styles: Array<{
+      id: string,
+      cssText: string,
+    }>;
+    scripts?: string[];
+    app: {
+      apiUrl?: string,
+      state?: any,
+      lang: string,
+    };
+    children: string;
+  }
+  export type Props = IProps;
 }
 
-const Html: React.StatelessComponent<IHtmlProps> = ({ title, description, styles, children, state }) => {
-  return (<html className="no-js">
-    <head>
-      <meta charSet="utf-8" />
-      <meta httpEquiv="x-ua-compatible" content="ie=edge" />
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.2/semantic.min.css"></link>
-      {styles.map((style) =>
-        <style
-          key={style.id}
-          id={style.id}
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: style.cssText }}
-        />,
-      )}
-    </head>
-    <body>
-      <div id="app" dangerouslySetInnerHTML={{ __html: children }} />
-      {state && (
-        <script
-          dangerouslySetInnerHTML={{ __html:
-          `window.__INITIAL_STATE__=${JSON.stringify(state)}` }}
-        />
-      )}
-      <script defer src="/assets/vendor.js"></script>
-      <script defer src="/assets/client.js"></script>
-      {analytics.googleTrackingId && (
-        <script
-          dangerouslySetInnerHTML={{ __html:
-          'window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;' +
-          `ga('create','${analytics.googleTrackingId}','auto');ga('send','pageview')` }}
-        />
-      )}
-      {analytics.googleTrackingId && (
-        <script src="https://www.google-analytics.com/analytics.js" async defer />
-      )}
-    </body>
-  </html>);
-};
-
-export default Html;
+export class Html extends React.Component<Html.Props> {
+  render() {
+    const { title, description, styles, scripts, app, children } = this.props;
+    return (
+      <html className="no-js" lang={app.lang}>
+        <head>
+          <meta charSet="utf-8" />
+          <meta httpEquiv="x-ua-compatible" content="ie=edge" />
+          <title>
+            {title}
+          </title>
+          <meta name="description" content={description} />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          {scripts.map((script) =>
+            <link key={script} rel="preload" href={script} />,
+          )}
+          <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+          {styles.map((style) =>
+            <style
+              key={style.id}
+              id={style.id}
+              dangerouslySetInnerHTML={{ __html: style.cssText }}
+            />,
+          )}
+        </head>
+        <body>
+          <div id="app" dangerouslySetInnerHTML={{ __html: children }} />
+          <script
+            dangerouslySetInnerHTML={{ __html: `window.App=${serialize(app)}` }}
+          />
+          {scripts.map((script) => <script key={script} src={script} />)}
+          {analytics.googleTrackingId &&
+            <script
+              dangerouslySetInnerHTML={{
+                __html:
+                  'window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;' +
+                  `ga('create','${analytics
+                    .googleTrackingId}','auto');ga('send','pageview')`,
+              }}
+            />}
+          {analytics.googleTrackingId &&
+            <script
+              src="https://www.google-analytics.com/analytics.js"
+              async
+              defer
+            />}
+        </body>
+      </html>
+    );
+  }
+}

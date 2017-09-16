@@ -11,7 +11,7 @@
 
 if (process.env.BROWSER) {
   throw new Error(
-    'Do not import `config.js` from inside the client-side code.',
+    'Do not import `config.ts` from inside the client-side code.',
   );
 }
 
@@ -45,7 +45,7 @@ export const analytics = {
 
 // Authentication
 export const auth = {
-  jwt: { secret: process.env.JWT_SECRET || 'React Starter Kit' },
+  jwt: { secret: process.env.JWT_SECRET || 'Typescript React Starter Kit' },
 
   // https://developers.facebook.com/
   facebook: {

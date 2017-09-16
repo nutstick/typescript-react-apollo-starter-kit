@@ -1,7 +1,7 @@
 {
   "extends": "tslint:recommended",
   "rules": {
-    "no-console": [true, "log", "error", "info"],
+    "no-console": [ false ],
     "object-literal-sort-keys": false,
     "quotemark": [ true, "single", "jsx-double" ],
     "variable-name": false,

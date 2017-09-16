@@ -1,11 +1,12 @@
 import {
   execute,
+  GraphQLSchema,
   specifiedRules,
   validate,
 } from 'graphql';
 
 export default class ServerInterface {
-  schema: any;
+  schema: GraphQLSchema;
   optionsData: any;
 
   constructor(optionsData) {
@@ -34,7 +35,6 @@ export default class ServerInterface {
         variables,
         operationName,
       );
-
       return result;
     } catch (contextError) {
       return { errors: [contextError] };

@@ -10,18 +10,19 @@ export interface State {
   readonly intl?: IntlState;
   readonly runtime?: RuntimeState;
   readonly ui?: UIState;
+  readonly apollo?: any;
 }
 
-export const createReducer = (asyncReducers?: any) => {
-  return combineReducers({
+export function createReducer({ apolloClient }) {
+  return combineReducers<State>({
+    apollo: apolloClient.reducer(),
     routing: routerReducer,
     intl: intlReducers,
     runtime: runtimeReducers,
     user: userReducers,
     ui: uiReducers,
-    ...asyncReducers,
   });
-};
+}
 
 export const injectAsyncReducer = (store, name, asyncReducer) => {
   store.asyncReducers[name] = asyncReducer;

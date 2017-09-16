@@ -1,5 +1,0 @@
-# DynamicData
-type DynamicData implements Node {
-  _id: ID!
-  column(id: String!): 
-}

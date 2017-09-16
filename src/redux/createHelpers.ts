@@ -1,6 +1,3 @@
-import gql from 'graphql-tag';
-import * as fetch from 'isomorphic-fetch';
-
 const graphqlRequestDeprecatedMessage = `\`graphqlRequest\` has been deprecated.
 You should use Apollo: \`client.query({ query, variables...})\` or \`client.mutate()\`
 Don't forget to enclose your query to gql\`…\` tag or import *.graphql file.
@@ -19,6 +16,11 @@ function createGraphqlRequest(apolloClient) {
     const { skipCache } = options;
     let query = queryOrString;
     if (typeof queryOrString === 'string') {
+      const gql = await (require as any).ensure(
+        ['graphql-tag'],
+        (require) => require('graphql-tag'),
+        'graphql-tag',
+      );
       query = gql([queryOrString]);
     }
 
@@ -38,39 +40,14 @@ function createGraphqlRequest(apolloClient) {
   };
 }
 
-function createFetchKnowingCookie({ cookie }) {
-  if (!process.env.BROWSER) {
-    return (url, options: RequestInit = {}) => {
-      const isLocalUrl = /^\/($|[^\/])/.test(url); // eslint-disable-line no-useless-escape
-
-      // pass cookie only for itself.
-      // We can't know cookies for other sites BTW
-      if (isLocalUrl && options.credentials === 'include') {
-        const headers = {
-          ...options.headers,
-          Cookie: cookie,
-        };
-        return fetch(url, { ...options, headers });
-      }
-
-      return fetch(url, options);
-    };
-  }
-
-  return fetch;
-}
-
-export default function createHelpers(config) {
-  const fetchKnowingCookie = createFetchKnowingCookie(config);
-  const graphqlRequest = createGraphqlRequest(config.apolloClient);
-
+export default function createHelpers({ apolloClient, fetch, history }) {
   return {
-    client: config.apolloClient,
-    history: config.history,
-    fetch: fetchKnowingCookie,
+    client: apolloClient,
+    history,
+    fetch,
     // @deprecated('Use `client` instead')
-    apolloClient: config.apolloClient,
+    apolloClient,
     // @deprecated('Use `client.query()` or `client.mutate()` instead')
-    graphqlRequest,
+    graphqlRequest: createGraphqlRequest(fetch),
   };
 }
