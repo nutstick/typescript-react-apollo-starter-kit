@@ -16,11 +16,11 @@ const messages = defineMessages({
   },
   bannerTitle: {
     id: 'header.banner.title',
-    defaultMessage: 'React',
+    defaultMessage: 'Reacts',
     description: 'Title in page header',
   },
   bannerDesc: {
-    id: 'header.banner.desc',
+    id: 'header.banner.descsss',
     defaultMessage: 'Complex web apps made easy',
     description: 'Description in header',
   },
@@ -34,7 +34,7 @@ export class Header extends React.Component<{}> {
         <div className={s.container}>
           <Navigation />
           <Link className={s.brand} to="/">
-            <img src={logoUrl} srcSet={`${logoUrl2x} 2x`} width="38" height="38" alt="React" />
+            {<img src={logoUrl} srcSet={`${logoUrl2x} 2x`} width="38" height="38" alt="React" />}
             <span className={s.brandTxt}>
               <FormattedMessage {...messages.brand} />
             </span>

@@ -1,4 +1,3 @@
-import { routerReducer } from 'react-router-redux';
 import { combineReducers, Dispatch } from 'redux';
 import { intlReducers, IntlState } from './intl/reducers';
 import { runtimeReducers, RuntimeState } from './runtime/reducers';
@@ -16,7 +15,6 @@ export interface State {
 export function createReducer({ apolloClient }) {
   return combineReducers<State>({
     apollo: apolloClient.reducer(),
-    routing: routerReducer,
     intl: intlReducers,
     runtime: runtimeReducers,
     user: userReducers,

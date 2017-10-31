@@ -7,13 +7,14 @@ import { Provider as ReduxProvider } from 'react-redux';
 namespace App {
   export interface Context {
     insertCss: any;
-    store: {
-      subscribe: any;
-      dispatch: any;
-      getState: any;
-    };
+    // store: {
+    //   subscribe: any;
+    //   dispatch: any;
+    //   getState: any;
+    // };
+    fetch: any;
     client: any;
-    intl: any;
+    // intl: any;
   }
 
   interface IProps extends React.Props<any> {

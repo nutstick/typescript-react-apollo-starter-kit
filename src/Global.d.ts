@@ -9,7 +9,6 @@ declare var global: any;
 
 declare var __DEV__: boolean;
 
-// tslint:disable-next-line
 declare interface Window {
   // A hack for the Redux DevTools Chrome extension.
   __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: <F extends Function>(f: F) => F;
@@ -23,16 +22,11 @@ declare interface Window {
     apiUrl: string,
     state: any,
     lang: string,
-  }
+  };
 }
 
-// tslint:disable-next-line
 interface NodeModule {
   hot?: any;
-}
-declare module 'react-router-scroll' {
-  const _: any;
-  export = _;
 }
 
 declare module 'write-file-webpack-plugin' {
@@ -46,21 +40,14 @@ declare module 'gaze' {
 }
 
 // tslint:disable-next-line
-interface ObjectConstructor {
-  assign(target: any, ...sources: any[]): any;
-}
-
-declare module '*.graphql' {
-  const _: any;
-  export = _;
-  // export default  _;
-}
+// interface ObjectConstructor {
+//   assign(target: any, ...sources: any[]): any;
+// }
 
 declare module '*.gql' {
   const _: DocumentNode;
   export = _;
-  // export default  _;
-}
+ }
 
 declare module '*.json' {
   const _: any;
@@ -68,11 +55,6 @@ declare module '*.json' {
 }
 
 declare module '*.css' {
-  const _: any;
-  export = _;
-}
-
-declare module '*.scss' {
   const _: any;
   export = _;
 }
@@ -89,8 +71,9 @@ declare module '*.png' {
 
 declare module 'isomorphic-style-loader/lib/withStyles' {
   export declare type CompositeComponent<P> = React.ComponentClass<P> | React.StatelessComponent<P>;
-  export interface ComponentDecorator<TOwnProps> {
-    (component: CompositeComponent<TOwnProps>): ComponentClass<TOwnProps>;
-  }
-  export default function withStyles<TProps = {}>(styles?: Object): ComponentDecorator<TProps>;
+  // export interface ComponentDecorator<TOwnProps> {
+  //   (component: CompositeComponent<TOwnProps>): ComponentClass<TOwnProps>;
+  // }
+  export type ComponentDecorator<TOwnProps> = (component: CompositeComponent<TOwnProps>) => ComponentClass<TOwnProps>;
+  export default function withStyles<TProps = {}>(styles?: any): ComponentDecorator<TProps>;
 }

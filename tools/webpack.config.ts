@@ -28,13 +28,26 @@ const REACT_INTL_ENFORCE_DESCRIPTIONS = false;
 console.log(path.resolve(__dirname, '../node_modules/react-icons'));
 
 const config: Configuration = {
-  context: path.resolve(__dirname, '../src'),
+  context: path.resolve(__dirname, '..'),
 
   output: {
     path: path.resolve(__dirname, '../dist/public/assets'),
     publicPath: '/assets/',
-    sourcePrefix: '  ',
     pathinfo: isVerbose,
+    filename: isDebug ? '[name].js' : '[name].[chunkhash:8].js',
+    chunkFilename: isDebug
+      ? '[name].chunk.js'
+      : '[name].[chunkhash:8].chunk.js',
+    devtoolModuleFilenameTemplate: (info) => path.resolve(info.absoluteResourcePath),
+  },
+
+  resolve: {
+    // modules: [
+    //   path.resolve(__dirname, '../src'),
+    //   'node_modules',
+    // ],
+    extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.json', '.ts', '.tsx'],
+    modules: ['node_modules', 'src'],
   },
 
   module: {
@@ -45,6 +58,53 @@ const config: Configuration = {
         options: {
           useBabel: true,
           useCache: true,
+          babelOptions: {
+            presets: [
+              // A Babel preset that can automatically determine the Babel plugins and polyfills
+              // https://github.com/babel/babel-preset-env
+              [
+                'env',
+                {
+                  targets: {
+                    // browsers: pkg.browserslist,
+                    // uglify: true,
+                    node: 'current',
+                  },
+                  modules: false,
+                  useBuiltIns: false,
+                  debug: false,
+                },
+              ],
+              // Experimental ECMAScript proposals
+              // https://babeljs.io/docs/plugins/#presets-stage-x-experimental-presets-
+              'stage-2',
+              // JSX, Flow
+              // https://github.com/babel/babel/tree/master/packages/babel-preset-react
+              'react',
+              // Optimize React code for the production build
+              // https://github.com/thejameskyle/babel-react-optimize
+              ...(isDebug ? [] : ['react-optimize']),
+            ],
+            plugins: [
+              // Adds component stack to warning messages
+              // https://github.com/babel/babel/tree/master/packages/babel-plugin-transform-react-jsx-source
+              ...(isDebug ? [] : ['transform-react-jsx-source']),
+              // Adds __self attribute to JSX which React will use for some warnings
+              // https://github.com/babel/babel/tree/master/packages/babel-plugin-transform-react-jsx-self
+              ...(isDebug ? [] : ['transform-react-jsx-self']),
+              [
+                'react-intl',
+                {
+                  messagesDir: path.resolve(
+                    __dirname,
+                    '../dist/messages/extracted',
+                  ),
+                  extractSourceLocation: true,
+                  enforceDescriptions: REACT_INTL_ENFORCE_DESCRIPTIONS,
+                },
+              ],
+            ],
+          },
         },
         exclude: /node_modules/,
       },
@@ -133,14 +193,20 @@ const config: Configuration = {
         exclude: /node_modules/,
         loader: 'graphql-tag/loader',
       },
+
+      // Exclude dev modules from production build
+      ...(isDebug
+        ? []
+        : [
+            {
+              test: path.resolve(
+                __dirname,
+                '../node_modules/react-deep-force-update/lib/index.js',
+              ),
+              loader: 'null-loader',
+            },
+          ]),
     ],
-  },
-  resolve: {
-    modules: [
-      path.resolve(__dirname, '../src'),
-      'node_modules',
-    ],
-    extensions: ['.webpack.js', '.web.js', '.js', '.jsx', '.json', '.ts', '.tsx'],
   },
 
   bail: !isDebug,
@@ -158,34 +224,38 @@ const config: Configuration = {
     // cachedAssets: isVerbose,
   },
 
+  // Choose a developer tool to enhance debugging
+  // https://webpack.js.org/configuration/devtool/#devtool
+  devtool: isDebug ? 'cheap-module-source-map' : 'source-map',
 };
 
 //
 // Configuration for the client-side bundle (client.js)
 // -----------------------------------------------------------------------------
 
-const clientConfig: Configuration = extend(true, {}, config, {
+const clientConfig: Configuration = {
+  ...config,
+
   name: 'client',
+  target: 'web',
 
   entry: {
-    client: ['babel-polyfill', './main.client.tsx'],
+    client: ['babel-polyfill', './src/loader.client.ts'],
   },
 
-  output: {
-    filename: isDebug ? '[name].js' : '[name].[chunkhash:8].js',
-    chunkFilename: isDebug ? '[name].chunk.js' : '[name].[chunkhash:8].chunk.js',
-  },
-
-  target: 'web',
+  // output: {
+  //   filename: isDebug ? '[name].js' : '[name].[chunkhash:8].js',
+  //   chunkFilename: isDebug ? '[name].chunk.js' : '[name].[chunkhash:8].chunk.js',
+  // },
 
   plugins: [
 
     new ExtractTextPlugin('[name].css'),
 
-    new webpack.LoaderOptionsPlugin({
-      minimize: !isDebug,
-      debug: !isDebug,
-    }),
+    // new webpack.LoaderOptionsPlugin({
+    //   minimize: !isDebug,
+    //   debug: !isDebug,
+    // }),
 
     // Define free variables
     // https://webpack.github.io/docs/list-of-plugins.html#defineplugin
@@ -233,6 +303,13 @@ const clientConfig: Configuration = extend(true, {}, config, {
           screw_ie8: true,
         },
       }),
+
+      new webpack.NormalModuleReplacementPlugin(
+        /^\.\.\/routes\/.+$/,
+        (resource) => {
+          resource.request = `${resource.request}/async`;
+        },
+      ),
     ],
 
     // Webpack Bundle Analyzer
@@ -253,78 +330,107 @@ const clientConfig: Configuration = extend(true, {}, config, {
     net: 'empty',
     tls: 'empty',
   },
-});
+};
 
 //
 // Configuration for the server-side bundle (server.js)
 // -----------------------------------------------------------------------------
 
-const serverConfig: Configuration = extend(true, {}, config, {
+const serverConfig: Configuration = {
+  ...config,
+
   name: 'server',
+  target: 'node',
 
   entry: {
-    server: ['babel-polyfill', './main.server.tsx'],
+    server: ['babel-polyfill', './src/main.server.tsx'],
   },
 
   output: {
-    filename: '../../main.server.js',
+    ...config.output,
+    path: path.resolve(__dirname, '../dist'),
+    filename: '[name].js',
+    chunkFilename: 'chunks/[name].js',
     libraryTarget: 'commonjs2',
   },
 
-  target: 'node',
+  module: {
+    ...config.module,
 
-  // module: {
-  //   ...config.module,
+    rules: overrideRules((config.module as webpack.NewModule).rules, (rule) => {
+      // Override babel-preset-env configuration for Node.js
+      if (rule.loader === 'awesome-typescript-loader') {
+        const x = {
+          ...rule,
+          options: {
+            ...rule.options,
+            babelOptions: {
+              ...rule.options.babelOptions,
+              presets: rule.options.babelOptions.presets.map(
+                (preset) =>
+                  preset[0] !== 'env'
+                    ? preset
+                    : [
+                        'env',
+                        {
+                          targets: {
+                            node: 'current',
+                          },
+                          // modules: false,
+                          // useBuiltIns: false,
+                          // debug: false,
+                        },
+                      ],
+              ),
+            },
+          },
+        };
+        return {
+          ...rule,
+          options: {
+            ...rule.options,
+            babelOptions: {
+              ...rule.options.babelOptions,
+              presets: rule.options.babelOptions.presets.map(
+                (preset) =>
+                  preset[0] !== 'env'
+                    ? preset
+                    : [
+                        'env',
+                        {
+                          targets: {
+                            node: 'current',
+                          },
+                          modules: false,
+                          useBuiltIns: false,
+                          debug: false,
+                        },
+                      ],
+              ),
+            },
+          },
+        };
+      }
 
-  //   rules: overrideRules((config.module as webpack.NewModule).rules, (rule) => {
-  //     // Override babel-preset-env configuration for Node.js
-  //     if (rule.loader === 'awesome-typescript-loader') {
-  //       return {
-  //         ...rule,
-  //         options: {
-  //           ...rule.options,
-  //           babelOptions: {
-  //             ...rule.options.babelOptions,
-  //             presets: rule.options.babelOptions.presets.map(
-  //               (preset) =>
-  //                 preset[0] !== 'env'
-  //                   ? preset
-  //                   : [
-  //                       'env',
-  //                       {
-  //                         targets: {
-  //                           node: pkg.engines.node.match(/(\d+\.?)+/)[0],
-  //                         },
-  //                         modules: false,
-  //                         useBuiltIns: false,
-  //                         debug: false,
-  //                       },
-  //                     ],
-  //             ),
-  //           },
-  //         },
-  //       };
-  //     }
+      // Override paths to static assets
+      // if (
+      //   rule.loader === 'file-loader' ||
+      //   rule.loader === 'url-loader' ||
+      //   rule.loader === 'svg-url-loader'
+      // ) {
+      //   return {
+      //     ...rule,
+      //     options: {
+      //       ...rule.options,
+      //       name: `public/assets/${rule.options.name}`,
+      //       publicPath: (url) => url.replace(/^public/, ''),
+      //     },
+      //   };
+      // }
 
-  //     // Override paths to static assets
-  //     // if (
-  //     //   rule.loader === 'file-loader' ||
-  //     //   rule.loader === 'url-loader' ||
-  //     //   rule.loader === 'svg-url-loader'
-  //     // ) {
-  //     //   return {
-  //     //     ...rule,
-  //     //     options: {
-  //     //       ...rule.options,
-  //     //       name: `public/assets/${rule.options.name}`,
-  //     //       publicPath: (url) => url.replace(/^public/, ''),
-  //     //     },
-  //     //   };
-  //     // }
-
-  //     return rule;
-  //   }),
-  // },
+      return rule;
+    }),
+  },
   externals: [
     './assets.json',
     nodeExternals({
@@ -346,7 +452,7 @@ const serverConfig: Configuration = extend(true, {}, config, {
 
     // Do not create separate chunks of the server bundle
     // https://webpack.github.io/docs/list-of-plugins.html#limitchunkcountplugin
-    new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
+    // new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
 
     // Adds a banner to the top of each generated chunk
     // https://webpack.js.org/plugins/banner-plugin/
@@ -355,6 +461,7 @@ const serverConfig: Configuration = extend(true, {}, config, {
       raw: true,
       entryOnly: false,
     }),
+
   ],
 
   node: {
@@ -365,8 +472,6 @@ const serverConfig: Configuration = extend(true, {}, config, {
     __filename: false,
     __dirname: false,
   },
-
-  devtool: isDebug ? 'cheap-module-source-map' : 'source-map',
-});
+};
 
 export default [clientConfig, serverConfig];

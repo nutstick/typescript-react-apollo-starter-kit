@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { ISetLocale, setLocale } from '../../redux/intl/actions';
-import { IntlState } from '../../redux/intl/reducers';
+import { ISetLocale, setLocale } from '../../reduxs/intl/actions';
 
 namespace LanguageSwitcher {
   export interface IConnectState {

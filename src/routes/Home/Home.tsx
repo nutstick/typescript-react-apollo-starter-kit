@@ -4,8 +4,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
 import { compose } from 'redux';
-import { State } from '../../redux';
-import { UserState } from '../../redux/user/reducers';
+import { State } from '../../reduxs';
+import { UserState } from '../../reduxs/user/reducers';
 import * as s from './Home.css';
 
 export namespace Home {
@@ -22,11 +22,11 @@ const mapStateToProps = ({ user }: State) => ({
 
 export class Home extends React.Component<Home.Props> {
   public render() {
-    return (<h2>Home Page</h2>);
+    return <h2>
+      Home Page
+    </h2>;
   }
 }
 
-export default compose(
-  withStyles(s),
-  connect(mapStateToProps),
-)(Home);
+const WithStylesHome = withStyles(s)(Home);
+export default connect(mapStateToProps)(Home);

@@ -6,8 +6,8 @@
 // Import all the third party stuff
 import 'whatwg-fetch';
 
-import { createNetworkInterface } from 'apollo-client';
-import * as FastClick from 'fastclick';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { HttpLink } from 'apollo-link-http';
 import * as FontFaceObserver from 'fontfaceobserver';
 import { createPath } from 'history/PathUtils';
 import * as React from 'react';
@@ -17,33 +17,31 @@ import { addLocaleData } from 'react-intl';
 /* @intl-code-template import ${lang} from 'react-intl/locale-data/${lang}'; */
 import cs from 'react-intl/locale-data/cs';
 import en from 'react-intl/locale-data/en';
+import th from 'react-intl/locale-data/th';
 /* @intl-code-template-end */
 import { BrowserRouter } from 'react-router-dom';
-import { ConnectedRouter } from 'react-router-redux';
 import App from './components/App';
 import createApolloClient from './core/createApolloClient';
-import { deepForceUpdate, ErrorReporter } from './core/devUtils';
+import { ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
 import createFetch from './createFetch';
-import { configureStore } from './redux/configureStore';
-import { getIntl } from './redux/intl/actions';
-import Routes from './routes';
+import { configureStore } from './reduxs/configureStore';
+import { getIntl } from './reduxs/intl/actions';
 
 const apolloClient = createApolloClient({
-  networkInterface: createNetworkInterface({
+  link: new HttpLink({
     uri: '/graphql',
-    opts: {
-      // Additional fetch options like `credentials` or `headers`
-      credentials: 'include',
-    },
+    credentials: 'include',
   }),
+  cache: new InMemoryCache(),
   ssrForceFetchDelay: 100,
 });
 
 /* @intl-code-template addLocaleData(${lang}); */
 addLocaleData(en);
 addLocaleData(cs);
+addLocaleData(th);
 /* @intl-code-template-end */
 
 const openSansObserver = new FontFaceObserver('Open Sans', {});
@@ -61,11 +59,11 @@ const fetch = createFetch(self.fetch, {
 
 // Initialize a new Redux store
 // http://redux.js.org/docs/basics/UsageWithReact.html
-const store = configureStore(window.App.state, {
-  history,
-  fetch,
-  apolloClient,
-});
+// const store = configureStore(window.App.state, {
+//   history,
+//   fetch,
+//   apolloClient,
+// });
 
 const context = {
   // Enables critical path CSS rendering
@@ -75,14 +73,15 @@ const context = {
     const removeCss = styles.map((x) => x._insertCss());
     return () => { removeCss.forEach((f) => f()); };
   },
+  fetch,
   // For react-apollo
   client: apolloClient,
   // Initialize a new Redux store
   // http://redux.js.org/docs/basics/UsageWithReact.html
-  store,
+  // store,
   storeSubscription: null,
   // intl instance as it can be get with injectIntl
-  intl: store.dispatch(getIntl()),
+  // intl: store.dispatch(getIntl()),
 };
 
 // Switch off the native scroll restoration behavior and handle it manually
@@ -143,6 +142,7 @@ let currentLocation = history.location;
 
 // Re-render the app when window.location changes
 async function onLocationChange(location?, action?) {
+  const Routes = require('./routes').default;
   // Remember the latest scroll position for the previous location
   scrollPositionsHistory[currentLocation.key] = {
     scrollX: window.pageXOffset,
@@ -154,18 +154,13 @@ async function onLocationChange(location?, action?) {
     delete scrollPositionsHistory[location.key];
   }
   currentLocation = location;
-
-  ReactDOM.render(
+  appInstance = ReactDOM.hydrate(
     <App context={context}>
       <BrowserRouter>
-        <ConnectedRouter history={history}>
-          <Routes />
-        </ConnectedRouter>
+        <Routes />
       </BrowserRouter>
     </App>,
-    document.getElementById('app'),
-    // TODO:
-    () => onRenderComplete({ title: 'Home' }, location),
+    container,
   );
 }
 
@@ -201,18 +196,10 @@ window.RSK_ENTRY = main;
 
 // Enable Hot Module Replacement (HMR)
 if (module.hot) {
-  module.hot.accept('./routes', async () => {
-    currentLocation = history.location;
-    await onLocationChange(currentLocation);
+  module.hot.accept('./routes', () => {
     if (appInstance) {
-      try {
-        // Force-update the whole tree, including components that refuse to update
-        deepForceUpdate(appInstance);
-      } catch (error) {
-        appInstance = null;
-        document.title = `Hot Update Error: ${error.message}`;
-        ReactDOM.render(<ErrorReporter error={error} />, document.getElementById('app'));
-      }
+      // Force-update the whole tree, including components that refuse to update
+      onLocationChange(currentLocation);
     }
   });
 }

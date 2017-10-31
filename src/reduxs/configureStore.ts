@@ -1,3 +1,4 @@
+import { NormalizedCache } from 'apollo-cache-inmemory';
 import ApolloClient from 'apollo-client';
 import { routerMiddleware } from 'react-router-redux';
 import * as Redux from 'redux';
@@ -15,7 +16,7 @@ interface IStore extends Redux.Store<any> {
 interface Config {
   history: any;
   cookie?: any;
-  apolloClient: ApolloClient;
+  apolloClient: ApolloClient<NormalizedCache>;
   fetch: any;
 }
 
@@ -26,7 +27,7 @@ export function configureStore(initialState: State, config?: Config): Redux.Stor
   let middleware: Redux.Middleware[] = [
     // routerMiddleware(helpersConfig.history),
     thunk.withExtraArgument(createHelpers(helpers)),
-    apolloClient.middleware(),
+    // apolloClient.middleware(),
   ];
 
   let enhancer;

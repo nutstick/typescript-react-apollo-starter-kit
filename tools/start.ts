@@ -30,7 +30,7 @@ const watchOptions = {
   // Uncomment next line if it is your case (use true or interval in milliseconds)
   // poll: true,
   // Decrease CPU or memory usage in some file systems
-  // ignored: /node_modules/,
+  ignored: /node_modules/,
 };
 
 function createCompilationPromise(name, compiler, config) {
@@ -83,17 +83,19 @@ async function start() {
   ]
     .concat((clientConfig.entry as webpack.Entry).client)
     .sort((a, b) => (b.includes('polyfill') as any) - (a.includes('polyfill') as any));
-
-  clientConfig.output.filename = clientConfig.output.filename.replace('[chunkhash', '[hash');
-  clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace('[chunkhash', '[hash');
-  // const { options } = (clientConfig.module as webpack.NewModule).rules
-  //   .find((x) => (x as any).loader === 'awesome-typescript-loader') as webpack.NewLoaderRule;
-  // options.babelOptions.plugins = ['react-hot-loader/babel'].concat(options.babelOptions.plugins || []);
-
+  clientConfig.output.filename = clientConfig.output.filename.replace('chunkhash', 'hash');
+  clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace('chunkhash', 'hash');
+  const loader = (clientConfig.module as webpack.NewModule).rules
+  .find((x) => (x as any).loader === 'awesome-typescript-loader') as any;
+  loader.options.babelOptions.plugins = ['react-hot-loader/babel']
+    .concat(loader.options.babelOptions.plugins || []);
+  loader.loaders = ['react-hot-loader/webpack', `${loader.loader}?${JSON.stringify(loader.options)}`];
+  delete loader.loader;
+  delete loader.options;
   clientConfig.plugins.push(
+    new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-    new webpack.NamedModulesPlugin(),
   );
 
   // Save the server-side bundle files to the file system after compilation
@@ -101,11 +103,10 @@ async function start() {
   serverConfig.output.hotUpdateMainFilename = 'updates/[hash].hot-update.json';
   serverConfig.output.hotUpdateChunkFilename = 'updates/[id].[hash].hot-update.js';
   serverConfig.plugins.push(
+    new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-    new webpack.NamedModulesPlugin(),
   );
-  serverConfig.plugins.push(new WriteFilePlugin({ log: false }));
 
   // Configure compilation
   await run(clean);
@@ -134,11 +135,13 @@ async function start() {
       publicPath: clientConfig.output.publicPath,
       quiet: true,
       watchOptions,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      serverSideRender: true,
     }),
   );
 
   // https://github.com/glenjamin/webpack-hot-middleware
-  server.use(webpackHotMiddleware(clientCompiler, { log: false }));
+  server.use(webpackHotMiddleware(clientCompiler, { log: console.log }));
 
   let appPromise;
   let appPromiseResolve;
@@ -182,15 +185,18 @@ async function start() {
           updatedModules.forEach((moduleId) =>
             console.info(`${hmrPrefix} - ${moduleId}`),
           );
+          delete require.cache[require.resolve('../dist/server')];
+          // eslint-disable-next-line global-require, import/no-unresolved
+          app = require('../dist/server').default;
           checkForUpdate(true);
         }
       })
       .catch((error) => {
         if (['abort', 'fail'].includes(app.hot.status())) {
           console.warn(`${hmrPrefix}Cannot apply update.`);
-          delete require.cache[require.resolve('../dist/main.server')];
+          delete require.cache[require.resolve('../dist/server')];
           // eslint-disable-next-line global-require, import/no-unresolved
-          app = require('../dist/main.server').default;
+          app = require('../dist/server').default;
           console.warn(`${hmrPrefix}App has been reloaded.`);
         } else {
           console.warn(
@@ -219,7 +225,7 @@ async function start() {
   console.info(`[${format(timeStart)}] Launching server...`);
 
   // Load compiled src/server.js as a middleware
-  app = require('../dist/main.server').default;
+  app = require('../dist/server').default;
   appPromiseIsResolved = true;
   appPromiseResolve();
 
@@ -228,18 +234,22 @@ async function start() {
     browserSync.create().init({
       // https://www.browsersync.io/docs/options
       // server: 'src/main.server.tsx',
-      middleware: [server],
+      server: {
+        baseDir: 'src/main.server.tsx',
+        middleware: [server],
+      },
       open: !process.argv.includes('--silent'),
-      ...(isDebug ? {
-        online: !!process.env.ONLINE || false,
-        ghostmode: !!process.env.GHOSTMODE || false,
-        notify: false,
-        scrollProportionally: false,
-        logFileChanges: false,
-        logSnippet: false,
-        minify: false,
-        timestamps: false,
-      } : { notify: false, ui: false }),
+      // ...(isDebug ? {
+      //   online: !!process.env.ONLINE || false,
+      //   ghostmode: !!process.env.GHOSTMODE || false,
+      //   notify: false,
+      //   scrollProportionally: false,
+      //   logFileChanges: false,
+      //   logSnippet: false,
+      //   minify: false,
+      //   timestamps: false,
+      // } : { notify: false, ui: false }),
+        ...(isDebug ? {} : { notify: false, ui: false }),
     }, (error, bs) => (error ? reject(error) : resolve(bs))),
   );
 

@@ -1,3 +1,4 @@
+import { NormalizedCache } from 'apollo-cache-inmemory';
 import ApolloClient from 'apollo-client';
 import { IntlProvider } from 'react-intl';
 import { Dispatch } from 'react-redux';
@@ -12,7 +13,9 @@ interface IQueryIntl {
   }>;
 }
 
-export type ISetLocale = (dispatch: Dispatch<State>, getState: () => void, context: { client: ApolloClient }) => any;
+export type ISetLocale = (dispatch: Dispatch<State>, getState: () => void, context: {
+  client: ApolloClient<NormalizedCache>,
+}) => any;
 
 export interface ISetLocaleStart {
   type: constants.SET_LOCALE_START;

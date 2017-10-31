@@ -13,7 +13,7 @@ export namespace Html {
     scripts?: string[];
     app: {
       apiUrl?: string,
-      state?: any,
+      // state?: any,
       lang: string,
     };
     children: string;
@@ -35,7 +35,7 @@ export class Html extends React.Component<Html.Props> {
           <meta name="description" content={description} />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           {scripts.map((script) =>
-            <link key={script} rel="preload" href={script} />,
+            <link key={script} rel="preload" href={script} {...{ as: 'script' }} />,
           )}
           <link rel="apple-touch-icon" href="apple-touch-icon.png" />
           {styles.map((style) =>

@@ -12,10 +12,10 @@ const messages = defineMessages({
     defaultMessage: 'About',
     description: 'About link in header',
   },
-  contact: {
-    id: 'navigation.contact',
-    defaultMessage: 'Contact',
-    description: 'Contact link in header',
+  todos: {
+    id: 'navigation.todos',
+    defaultMessage: 'Todo',
+    description: 'Todos link in header',
   },
   login: {
     id: 'navigation.login',
@@ -38,22 +38,25 @@ class Navigation extends React.Component<{}> {
   render() {
     return (
       <div className={s.root} role="navigation">
-        <Link className={s.link} to="/about">
-          <FormattedMessage {...messages.about} />
-        </Link>
-        <Link className={s.link} to="/contact">
-          <FormattedMessage {...messages.contact} />
-        </Link>
-        <span className={s.spacer}> | </span>
-        <Link className={s.link} to="/login">
-          <FormattedMessage {...messages.login} />
-        </Link>
-        <span className={s.spacer}>
-          <FormattedMessage {...messages.or} />
-        </span>
-        <Link className={cx(s.link, s.highlight)} to="/register">
-          <FormattedMessage {...messages.signup} />
-        </Link>
+        <div className={s.left}>
+          <Link className={s.link} to="/todos">
+            <FormattedMessage {...messages.todos} />
+          </Link>
+          <Link className={s.link} to="/about">
+            <FormattedMessage {...messages.about} />
+          </Link>
+        </div>
+        <div className={s.right}>
+          <Link className={s.link} to="/login">
+            <FormattedMessage {...messages.login} />
+          </Link>
+          <span className={s.spacer}>
+            <FormattedMessage {...messages.or} />
+          </span>
+          <Link className={cx(s.link, s.highlight)} to="/register">
+            <FormattedMessage {...messages.signup} />
+          </Link>
+        </div>
       </div>
     );
   }

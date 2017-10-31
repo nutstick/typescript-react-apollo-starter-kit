@@ -1,14 +1,14 @@
-import { createNetworkInterface } from 'apollo-client';
+import { HttpLink } from 'apollo-link-http';
+import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
 import * as BluebirdPromise from 'bluebird';
 import * as bodyParser from 'body-parser';
 import * as chalk from 'chalk';
 import * as cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
-import * as expressGraphQL from 'express-graphql';
-import * as expressJwt from 'express-jwt';
 import { UnauthorizedError as Jwt401Error } from 'express-jwt';
-import * as requestLanguage from 'express-request-language';
+// import * as expressGraphQL from 'express-graphql';
+import * as expressJwt from 'express-jwt';
 import * as helmet from 'helmet';
 import * as jwt from 'jsonwebtoken';
 import * as nodeFetch from 'node-fetch';
@@ -25,11 +25,12 @@ import { Html } from './components/Html';
 import { api, auth, locales, port } from './config';
 import createApolloClient from './core/createApolloClient';
 import passport from './core/passport';
+import { requestLanguage } from './core/requestLanguage';
 import ServerInterface from './core/ServerInterface';
 import createFetch from './createFetch';
-import { configureStore } from './redux/configureStore';
-import { setLocale } from './redux/intl/actions';
-import { setRuntimeVariable } from './redux/runtime/actions';
+import { configureStore } from './reduxs/configureStore';
+import { setLocale } from './reduxs/intl/actions';
+import { setRuntimeVariable } from './reduxs/runtime/actions';
 import Routes from './routes';
 import ErrorPage from './routes/Error/ErrorPage';
 import * as errorPageStyle from './routes/Error/ErrorPage.css';
@@ -122,14 +123,16 @@ app.get('/logout', (req, res) => {
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
-const graphqlMiddleware = expressGraphQL((req) => ({
-  schema: Schema,
-  graphiql: __DEV__,
-  rootValue: { request: req },
-  pretty: __DEV__,
-}));
+// const graphqlMiddleware = expressGraphQL((req) => ({
+//   schema: Schema,
+//   graphiql: __DEV__,
+//   rootValue: { request: req },
+//   pretty: __DEV__,
+// }));
 
-app.use('/graphql', graphqlMiddleware);
+// app.use('/graphql', graphqlMiddleware);
+app.use('/graphql', bodyParser.json(), graphqlExpress({ schema: Schema }));
+app.get('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
 //
 // Register server-side rendering middleware
@@ -138,10 +141,14 @@ app.get('*', async (req, res, next) => {
   const location = req.url;
 
   const apolloClient = createApolloClient({
-    networkInterface: new ServerInterface({
-      schema: Schema,
-      rootValue: { request: req },
+    link: new HttpLink({
+      uri: '/graphql',
+      credentials: 'include',
     }),
+    // networkInterface: new ServerInterface({
+    //   schema: Schema,
+    //   rootValue: { request: req },
+    // }),
     ssrMode: true,
   });
 
@@ -152,31 +159,31 @@ app.get('*', async (req, res, next) => {
     // apolloClient,
   });
 
-  const store = configureStore({
-    user: req.user || null,
-  }, {
-    history: null,
-    cookie: req.headers.cookies,
-    apolloClient,
-    fetch,
-  });
+  // const store = configureStore({
+  //   user: req.user || null,
+  // }, {
+  //   history: null,
+  //   cookie: req.headers.cookies,
+  //   apolloClient,
+  //   fetch,
+  // });
 
-  store.dispatch(setRuntimeVariable({
-    name: 'initialNow',
-    value: Date.now(),
-  }));
+  // store.dispatch(setRuntimeVariable({
+  //   name: 'initialNow',
+  //   value: Date.now(),
+  // }));
 
-  store.dispatch(setRuntimeVariable({
-    name: 'availableLocales',
-    value: locales,
-  }));
+  // store.dispatch(setRuntimeVariable({
+  //   name: 'availableLocales',
+  //   value: locales,
+  // }));
 
   const locale = req.language;
-  const intl = await store.dispatch(
-    setLocale({
-      locale,
-    }),
-  );
+  // const intl = await store.dispatch(
+  //   setLocale({
+  //     locale,
+  //   }),
+  // );
 
   const css = new Set();
 
@@ -190,12 +197,12 @@ app.get('*', async (req, res, next) => {
       styles.forEach((style) => css.add(style._getCss()));
     },
     fetch,
-    store,
-    storeSubscription: null,
+    // store,
+    // storeSubscription: null,
     // Apollo Client for use with react-apollo
     client: apolloClient,
     // intl instance as it can be get with injectIntl
-    intl,
+    // intl,
   };
 
   const component = (
@@ -219,7 +226,7 @@ app.get('*', async (req, res, next) => {
     scripts: [assets.vendor.js, assets.client.js],
     app: {
       apiUrl: api.clientUrl,
-      state: context.store.getState(),
+      // state: context.store.getState(),
       lang: locale,
     },
     children,
@@ -279,7 +286,9 @@ if (!module.hot) {
 // -----------------------------------------------------------------------------
 if (module.hot) {
   app.hot = module.hot;
-  module.hot.accept('./routes');
+  // module.hot.accept('./routes');
+
+  module.hot.accept();
 }
 
 export default app;

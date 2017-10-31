@@ -11,7 +11,7 @@
   {
     "id": "header.banner.title",
     "description": "Title in page header",
-    "defaultMessage": "React",
+    "defaultMessage": "Reacts",
     "message": "",
     "files": [
       "src/components/Header/Header.tsx"
@@ -30,15 +30,6 @@
     "id": "navigation.about",
     "description": "About link in header",
     "defaultMessage": "About",
-    "message": "",
-    "files": [
-      "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "navigation.contact",
-    "description": "Contact link in header",
-    "defaultMessage": "Contact",
     "message": "",
     "files": [
       "src/components/Navigation/Navigation.tsx"
@@ -66,6 +57,15 @@
     "id": "navigation.signup",
     "description": "Sign up link in header",
     "defaultMessage": "Sign up",
+    "message": "",
+    "files": [
+      "src/components/Navigation/Navigation.tsx"
+    ]
+  },
+  {
+    "id": "navigation.todos",
+    "description": "Todos link in header",
+    "defaultMessage": "Todo",
     "message": "",
     "files": [
       "src/components/Navigation/Navigation.tsx"
