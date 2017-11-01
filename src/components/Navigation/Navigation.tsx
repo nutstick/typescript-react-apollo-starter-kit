@@ -3,7 +3,7 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
 import { defineMessages, FormattedMessage } from 'react-intl';
 import * as l from '../Header/logo-small.png';
-import Link from '../Link';
+import { Link } from '../Link';
 import * as s from './Navigation.css';
 
 const messages = defineMessages({
@@ -34,7 +34,8 @@ const messages = defineMessages({
   },
 });
 
-class Navigation extends React.Component<{}> {
+@withStyles(s)
+export class Navigation extends React.Component<{}> {
   render() {
     return (
       <div className={s.root} role="navigation">
@@ -61,5 +62,3 @@ class Navigation extends React.Component<{}> {
     );
   }
 }
-
-export default withStyles(s)(Navigation);

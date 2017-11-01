@@ -1,5 +1,3 @@
-import AsyncComponents from '../../components/AsyncComponents';
+import { AsyncComponents } from '../../components/AsyncComponents';
 
-export const Home = AsyncComponents(() => {
-  return import('./Home');
-});
+export const Home = AsyncComponents(() => import('./Home').then((module) => module.Home));

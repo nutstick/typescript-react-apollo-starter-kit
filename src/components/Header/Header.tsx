@@ -1,9 +1,9 @@
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
 import { defineMessages, FormattedMessage } from 'react-intl';
-import LanguageSwitcher from '../LanguageSwitcher';
-import Link from '../Link';
-import Navigation from '../Navigation';
+// import LanguageSwitcher from '../LanguageSwitcher';
+import { Link } from '../Link';
+import { Navigation } from '../Navigation';
 import * as s from './Header.css';
 import * as logoUrl from './logo-small.png';
 import * as logoUrl2x from './logo-small@2x.png';
@@ -39,7 +39,7 @@ export class Header extends React.Component<{}> {
               <FormattedMessage {...messages.brand} />
             </span>
           </Link>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <div className={s.banner}>
             <h1 className={s.bannerTitle}>
               <FormattedMessage {...messages.bannerTitle} />

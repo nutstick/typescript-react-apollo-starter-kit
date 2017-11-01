@@ -5,7 +5,7 @@ interface INotFound extends React.Props<any> {
   title: string;
 }
 
-export default class NotFound extends React.Component<INotFound> {
+export class NotFound extends React.Component<INotFound> {
   constructor(props) {
     super(props);
   }

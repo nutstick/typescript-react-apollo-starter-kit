@@ -1,7 +1,6 @@
 import * as AssetsPlugin from 'assets-webpack-plugin';
 // import { CheckerPlugin, TsConfigPathsPlugin } from 'awesome-typescript-loader';
 import * as cssnano from 'cssnano';
-import * as extend from 'extend';
 import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
 import * as path from 'path';
 import * as webpack from 'webpack';

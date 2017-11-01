@@ -1,3 +1,1 @@
-import { asyncRoute } from './AsyncComponents';
-
-export default asyncRoute;
+export { asyncRoute as AsyncComponents } from './AsyncComponents';
