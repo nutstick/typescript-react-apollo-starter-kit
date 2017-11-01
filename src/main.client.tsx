@@ -13,7 +13,7 @@ import { createPath } from 'history/PathUtils';
 import * as React from 'react';
 import { ApolloProvider } from 'react-apollo';
 import * as ReactDOM from 'react-dom';
-import { addLocaleData } from 'react-intl';
+import { addLocaleData, IntlProvider } from 'react-intl';
 /* @intl-code-template import ${lang} from 'react-intl/locale-data/${lang}'; */
 import cs from 'react-intl/locale-data/cs';
 import en from 'react-intl/locale-data/en';
@@ -26,14 +26,18 @@ import { ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
 import createFetch from './createFetch';
-import { configureStore } from './reduxs/configureStore';
-import { getIntl } from './reduxs/intl/actions';
+import { local } from './local';
+
+/*
+  Apollo Client v2
+*/
+const http = new HttpLink({
+  uri: '/graphql',
+  credentials: 'include',
+});
 
 const apolloClient = createApolloClient({
-  link: new HttpLink({
-    uri: '/graphql',
-    credentials: 'include',
-  }),
+  link: local.concat(http),
   cache: new InMemoryCache(),
   ssrForceFetchDelay: 100,
 });
@@ -65,6 +69,13 @@ const fetch = createFetch(self.fetch, {
 //   apolloClient,
 // });
 
+const intl = new IntlProvider({
+  initialNow: Date.now(),
+  // locale,
+  messages: {},
+  defaultLocale: 'en-US',
+}).getChildContext().intl;
+
 const context = {
   // Enables critical path CSS rendering
   // https://github.com/kriasoft/isomorphic-style-loader
@@ -76,12 +87,8 @@ const context = {
   fetch,
   // For react-apollo
   client: apolloClient,
-  // Initialize a new Redux store
-  // http://redux.js.org/docs/basics/UsageWithReact.html
-  // store,
-  storeSubscription: null,
   // intl instance as it can be get with injectIntl
-  // intl: store.dispatch(getIntl()),
+  intl,
 };
 
 // Switch off the native scroll restoration behavior and handle it manually

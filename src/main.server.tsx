@@ -1,3 +1,4 @@
+import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpLink } from 'apollo-link-http';
 import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
 import * as BluebirdPromise from 'bluebird';
@@ -6,10 +7,10 @@ import * as chalk from 'chalk';
 import * as cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
-import { UnauthorizedError as Jwt401Error } from 'express-jwt';
 // import * as expressGraphQL from 'express-graphql';
 import * as expressJwt from 'express-jwt';
-import * as helmet from 'helmet';
+import { UnauthorizedError as Jwt401Error } from 'express-jwt';
+import gql from 'graphql-tag';
 import * as jwt from 'jsonwebtoken';
 import * as nodeFetch from 'node-fetch';
 import * as path from 'path';
@@ -17,6 +18,7 @@ import * as PrettyError from 'pretty-error';
 import * as React from 'react';
 import { getDataFromTree } from 'react-apollo';
 import * as ReactDOM from 'react-dom/server';
+import { IntlProvider } from 'react-intl';
 import { Provider } from 'react-redux';
 import { StaticRouter } from 'react-router';
 import * as assets from './assets.json';
@@ -26,11 +28,8 @@ import { api, auth, locales, port } from './config';
 import createApolloClient from './core/createApolloClient';
 import passport from './core/passport';
 import { requestLanguage } from './core/requestLanguage';
-import ServerInterface from './core/ServerInterface';
+import { ServerLink } from './core/ServerLink';
 import createFetch from './createFetch';
-import { configureStore } from './reduxs/configureStore';
-import { setLocale } from './reduxs/intl/actions';
-import { setRuntimeVariable } from './reduxs/runtime/actions';
 import Routes from './routes';
 import ErrorPage from './routes/Error/ErrorPage';
 import * as errorPageStyle from './routes/Error/ErrorPage.css';
@@ -140,15 +139,16 @@ app.get('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 app.get('*', async (req, res, next) => {
   const location = req.url;
 
-  const apolloClient = createApolloClient({
-    link: new HttpLink({
-      uri: '/graphql',
-      credentials: 'include',
+  const client = createApolloClient({
+    link: new ServerLink({
+      schema: Schema,
+      rootValue: { request: req },
     }),
     // networkInterface: new ServerInterface({
     //   schema: Schema,
     //   rootValue: { request: req },
     // }),
+    cache: new InMemoryCache(),
     ssrMode: true,
   });
 
@@ -159,31 +159,24 @@ app.get('*', async (req, res, next) => {
     // apolloClient,
   });
 
-  // const store = configureStore({
-  //   user: req.user || null,
-  // }, {
-  //   history: null,
-  //   cookie: req.headers.cookies,
-  //   apolloClient,
-  //   fetch,
-  // });
+  const state = {
+    locales: {
+      availableLocales: locales,
+    },
+    runtimeVariable: {
+      initialNow: Date.now(),
+    },
+  };
 
-  // store.dispatch(setRuntimeVariable({
-  //   name: 'initialNow',
-  //   value: Date.now(),
-  // }));
-
-  // store.dispatch(setRuntimeVariable({
-  //   name: 'availableLocales',
-  //   value: locales,
-  // }));
-
+  // Fetch locale's messages
   const locale = req.language;
-  // const intl = await store.dispatch(
-  //   setLocale({
-  //     locale,
-  //   }),
-  // );
+  // TODO: messages: localeMessages
+  const intl = new IntlProvider({
+    initialNow: Date.now(),
+    locale,
+    messages: {},
+    defaultLocale: 'en-US',
+  }).getChildContext().intl;
 
   const css = new Set();
 
@@ -197,12 +190,10 @@ app.get('*', async (req, res, next) => {
       styles.forEach((style) => css.add(style._getCss()));
     },
     fetch,
-    // store,
-    // storeSubscription: null,
     // Apollo Client for use with react-apollo
-    client: apolloClient,
+    client,
     // intl instance as it can be get with injectIntl
-    // intl,
+    intl,
   };
 
   const component = (
