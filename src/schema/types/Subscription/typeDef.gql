@@ -1,0 +1,4 @@
+# Subscription
+type Subscription {
+	messageAdded(traderoom: ID!): String
+}

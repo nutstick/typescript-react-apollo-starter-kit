@@ -7,6 +7,7 @@ import * as IntlMessage from './types/IntlMessage';
 import * as Mutation from './types/Mutation';
 import * as Pagination from './types/Pagination';
 import * as Query from './types/Query';
+import * as Subscription from './types/Subscription';
 import * as User from './types/User';
 
 const schema = [print(SchemaType)];
@@ -15,7 +16,8 @@ const modules = [
   User,
   IntlMessage,
   Query,
-  // Mutation,
+  Subscription,
+  Mutation,
 ];
 
 const resolvers = Object.assign({

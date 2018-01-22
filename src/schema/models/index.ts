@@ -6,6 +6,6 @@ class Database extends Core {
   User = new Model<IUserDocument, User>(this, User);
 }
 
-const database = new Database({ database: mongodb });
+const database = new Database({ ...mongodb });
 
 export { database, Database };

@@ -8,13 +8,13 @@
  */
 
 import * as browserSync from 'browser-sync';
+import * as cp from 'child_process';
 import * as express from 'express';
 import * as path from 'path';
 import * as createLaunchEditorMiddleware from 'react-dev-utils/errorOverlayMiddleware';
 import * as webpack from 'webpack';
 import * as webpackDevMiddleware from 'webpack-dev-middleware';
 import * as webpackHotMiddleware from 'webpack-hot-middleware';
-import * as WriteFilePlugin from 'write-file-webpack-plugin';
 import clean from './clean';
 import copy from './copy';
 import run, { format } from './run';
@@ -23,7 +23,7 @@ import webpackConfig from './webpack.config';
 const isDebug = !process.argv.includes('--release');
 process.argv.push('--watch');
 
-const [clientConfig, serverConfig] = webpackConfig;
+const [clientConfig, serverConfig, socketConfig] = webpackConfig;
 
 const watchOptions = {
   // Watching may not work with NFS and machines in VirtualBox
@@ -62,6 +62,8 @@ function createCompilationPromise(name, compiler, config) {
 }
 
 let server;
+let socketProcess;
+
 /**
  * Launches a development web server with "live reload" functionality -
  * synchronizing URLs, interactions and code changes across multiple devices.
@@ -87,8 +89,8 @@ async function start() {
   clientConfig.output.chunkFilename = clientConfig.output.chunkFilename.replace('chunkhash', 'hash');
   const loader = (clientConfig.module as webpack.NewModule).rules
   .find((x) => (x as any).loader === 'awesome-typescript-loader') as any;
-  loader.options.babelOptions.plugins = ['react-hot-loader/babel']
-    .concat(loader.options.babelOptions.plugins || []);
+  loader.options.babelOptions.plugins = (loader.options.babelOptions.plugins || [])
+    .concat(['react-hot-loader/babel']);
   loader.loaders = ['react-hot-loader/webpack', `${loader.loader}?${JSON.stringify(loader.options)}`];
   delete loader.loader;
   delete loader.options;
@@ -108,6 +110,14 @@ async function start() {
     new webpack.NoEmitOnErrorsPlugin(),
   );
 
+  // Configure socket compilation
+  socketConfig.output.hotUpdateMainFilename = 'updates/[hash].hot-update.json';
+  socketConfig.output.hotUpdateChunkFilename = 'updates/[id].[hash].hot-update.js';
+  socketConfig.plugins.push(
+    // new webpack.HotModuleReplacementPlugin(),
+    // new webpack.NoEmitOnErrorsPlugin(),
+    new webpack.NamedModulesPlugin(),
+  );
   // Configure compilation
   await run(clean);
 
@@ -118,6 +128,9 @@ async function start() {
   const serverCompiler = (multiCompiler as any).compilers.find(
     (compiler) => compiler.name === 'server',
   );
+  const socketCompiler = (multiCompiler as any).compilers.find(
+    (compiler) => compiler.name === 'socket',
+  );
   const clientPromise = createCompilationPromise(
     'client',
     clientCompiler,
@@ -127,6 +140,11 @@ async function start() {
     'server',
     serverCompiler,
     serverConfig,
+  );
+  const socketPromise = createCompilationPromise(
+    'socket',
+    socketCompiler,
+    socketConfig,
   );
 
   // https://github.com/webpack/webpack-dev-middleware
@@ -154,6 +172,22 @@ async function start() {
     appPromise = new Promise((resolve) => (appPromiseResolve = resolve));
   });
 
+  let socketServerPromise;
+  let socketServerPromiseResolve;
+  let socketServerPromiseIsResolved = true;
+  socketCompiler.plugin('compile', () => {
+    if (socketProcess || (socketProcess && !socketProcess.killed)) {
+      socketProcess.kill('SIGTERM');
+    }
+    if (!socketServerPromiseIsResolved) {
+      return;
+    }
+    socketServerPromiseIsResolved = false;
+    socketServerPromise = new Promise((resolve) =>
+      (socketServerPromiseResolve = resolve),
+    );
+  });
+
   let app;
   server.use((req, res) => {
     appPromise
@@ -176,6 +210,7 @@ async function start() {
           if (fromUpdate) {
             console.info(`${hmrPrefix}Update applied.`);
           }
+
           return;
         }
         if (updatedModules.length === 0) {
@@ -186,7 +221,6 @@ async function start() {
             console.info(`${hmrPrefix} - ${moduleId}`),
           );
           delete require.cache[require.resolve('../dist/server')];
-          // eslint-disable-next-line global-require, import/no-unresolved
           app = require('../dist/server').default;
           checkForUpdate(true);
         }
@@ -195,7 +229,6 @@ async function start() {
         if (['abort', 'fail'].includes(app.hot.status())) {
           console.warn(`${hmrPrefix}Cannot apply update.`);
           delete require.cache[require.resolve('../dist/server')];
-          // eslint-disable-next-line global-require, import/no-unresolved
           app = require('../dist/server').default;
           console.warn(`${hmrPrefix}App has been reloaded.`);
         } else {
@@ -204,6 +237,16 @@ async function start() {
           );
         }
       });
+  }
+
+  function checkForUpdateSocket() {
+    // only reload if it has already been spawned once and thus compiled
+    if (socketProcess) {
+      socketProcess = cp.spawn('node', ['./dist/socket.js'], {
+        stdio: 'inherit',
+      });
+    }
+    return Promise.resolve();
   }
 
   serverCompiler.watch(watchOptions, (error, stats) => {
@@ -215,14 +258,31 @@ async function start() {
     }
   });
 
+  socketCompiler.watch(watchOptions, (error, stats) => {
+    if (!error && !stats.hasErrors()) {
+      checkForUpdateSocket().then(() => {
+        socketServerPromiseIsResolved = true;
+        socketServerPromiseResolve();
+      });
+    }
+  });
+
   // Wait until both client-side and server-side bundles are ready
   await clientPromise;
   await serverPromise;
+  await socketPromise;
 
   process.env.MESSAGES_DIR = path.join(__dirname, '../src/messages/');
 
   const timeStart = new Date();
   console.info(`[${format(timeStart)}] Launching server...`);
+
+  // spawn socket process
+  if (!socketProcess || (socketProcess && socketProcess.killed)) {
+    socketProcess = cp.spawn('node', ['./dist/socket.js'], {
+      stdio: 'inherit',
+    });
+  }
 
   // Load compiled src/server.js as a middleware
   app = require('../dist/server').default;

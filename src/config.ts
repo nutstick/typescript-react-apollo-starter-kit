@@ -25,7 +25,19 @@ export const locales = [
 
 export const port = process.env.PORT || 3000;
 
-export const mongodb = process.env.MONGODB || `ts-reactql-starter-kit`;
+export const wsport = process.env.WSPORT || 4040;
+
+export const mongodb = {
+  host: process.env.MONGO_HOST || `localhost`,
+  port: parseInt(process.env.MONGO_PORT, 10) || 27017,
+  database: process.env.MONGO_DB || 'ts-reactql-starter-kit',
+};
+
+export const redis = {
+  host: process.env.REDIS_HOST || `localhost`,
+  port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+};
+
 
 export const api = {
   // API URL to be used in the client-side code
@@ -71,3 +83,5 @@ export const auth = {
       'KTZ6cxoKnEakQCeSpZlaUCJWGAlTEBJj0y2EMkUBujA7zWSvaQ',
   },
 };
+
+export const uploadDir = './public/images';

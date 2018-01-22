@@ -1,16 +1,13 @@
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { HttpLink } from 'apollo-link-http';
+import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
+import { ApolloClient } from 'apollo-client';
 import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
-import * as BluebirdPromise from 'bluebird';
+import { apolloUploadExpress } from 'apollo-upload-server';
 import * as bodyParser from 'body-parser';
-import * as chalk from 'chalk';
 import * as cookieParser from 'cookie-parser';
-import * as dotenv from 'dotenv';
 import * as express from 'express';
-// import * as expressGraphQL from 'express-graphql';
 import * as expressJwt from 'express-jwt';
 import { UnauthorizedError as Jwt401Error } from 'express-jwt';
-import gql from 'graphql-tag';
+import * as requestLanguage from 'express-request-language';
 import * as jwt from 'jsonwebtoken';
 import * as nodeFetch from 'node-fetch';
 import * as path from 'path';
@@ -19,17 +16,17 @@ import * as React from 'react';
 import { getDataFromTree } from 'react-apollo';
 import * as ReactDOM from 'react-dom/server';
 import { IntlProvider } from 'react-intl';
-import { Provider } from 'react-redux';
 import { StaticRouter } from 'react-router';
+import { createApolloClient } from './apollo';
+import { IntlQuery } from './apollo/intl';
+import * as INTLQUERY from './apollo/intl/IntlQuery.gql';
+import * as LOCALEQUERY from './apollo/intl/LocaleQuery.gql';
 import * as assets from './assets.json';
 import App from './components/App';
 import { Html } from './components/Html';
-import { api, auth, locales, port } from './config';
-import createApolloClient from './core/createApolloClient';
+import { api, auth, locales, port, wsport } from './config';
 import passport from './core/passport';
-import { requestLanguage } from './core/requestLanguage';
 import { ServerLink } from './core/ServerLink';
-import createFetch from './createFetch';
 import Routes from './routes';
 import ErrorPage from './routes/Error/ErrorPage';
 import * as errorPageStyle from './routes/Error/ErrorPage.css';
@@ -40,6 +37,8 @@ import { database } from './schema/models';
  */
 interface HotExpress extends express.Express {
   hot: any;
+
+  wsServer: any;
 }
 
 const app = express() as HotExpress;
@@ -48,13 +47,14 @@ const app = express() as HotExpress;
 // Tell any CSS tooling (such as Material UI) to use all vendor prefixes if the
 // user agent is not known.
 // -----------------------------------------------------------------------------
+declare var global: any;
 global.navigator = global.navigator || {};
 global.navigator.userAgent = global.navigator.userAgent || 'all';
 
 //
 // Register Node.js middleware
 // -----------------------------------------------------------------------------
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
 app.use(cookieParser());
 app.use(
   requestLanguage({
@@ -122,115 +122,166 @@ app.get('/logout', (req, res) => {
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
-// const graphqlMiddleware = expressGraphQL((req) => ({
-//   schema: Schema,
-//   graphiql: __DEV__,
-//   rootValue: { request: req },
-//   pretty: __DEV__,
-// }));
-
-// app.use('/graphql', graphqlMiddleware);
-app.use('/graphql', bodyParser.json(), graphqlExpress({ schema: Schema }));
-app.get('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
+app.use('/graphql', bodyParser.json(), apolloUploadExpress({ uploadDir: './public/images' }),
+  graphqlExpress((req, res) => ({
+    schema: Schema,
+    context: {
+      database,
+      req,
+      res,
+      user: req.user,
+    },
+    rootValue: { request: req },
+  })));
+app.get('/graphiql', graphiqlExpress({
+  endpointURL: '/graphql',
+  subscriptionsEndpoint: `ws://localhost:${wsport}/subscriptions`,
+}));
 
 //
 // Register server-side rendering middleware
 // -----------------------------------------------------------------------------
-app.get('*', async (req, res, next) => {
-  const location = req.url;
-
-  const client = createApolloClient({
-    link: new ServerLink({
-      schema: Schema,
-      rootValue: { request: req },
-    }),
-    // networkInterface: new ServerInterface({
-    //   schema: Schema,
-    //   rootValue: { request: req },
-    // }),
-    cache: new InMemoryCache(),
-    ssrMode: true,
+const setLocale = async (client: ApolloClient<any>, { locale, initialNow }, { cache }) => {
+  const { data } = await client.query<IntlQuery>({
+    query: INTLQUERY,
+    variables: { locale },
   });
 
-  // Universal HTTP client
-  const fetch = createFetch(nodeFetch, {
-    baseUrl: api.serverUrl,
-    cookie: req.headers.cookie,
-    // apolloClient,
-  });
+  const messages = data.intl.reduce((msgs, msg) => {
+    msgs[msg.id] = msg.message;
+    return msgs;
+  }, {});
 
-  const state = {
-    locales: {
+  client.writeQuery({
+    query: LOCALEQUERY,
+    variables: {
+      locale,
+      initialNow,
       availableLocales: locales,
     },
-    runtimeVariable: {
-      initialNow: Date.now(),
+    data: {
+      locale,
+      initialNow,
+      availableLocales: locales,
     },
-  };
+  });
 
-  // Fetch locale's messages
-  const locale = req.language;
-  // TODO: messages: localeMessages
-  const intl = new IntlProvider({
-    initialNow: Date.now(),
+  const provider = new IntlProvider({
+    initialNow,
     locale,
-    messages: {},
+    messages,
     defaultLocale: 'en-US',
-  }).getChildContext().intl;
+  });
 
-  const css = new Set();
+  return provider.getChildContext().intl;
+};
 
-  // Global (context) variables that can be easily accessed from any React component
-  // https://facebook.github.io/react/docs/context.html
-  const context = {
-    // Enables critical path CSS rendering
-    // https://github.com/kriasoft/isomorphic-style-loader
-    insertCss: (...styles) => {
-      // eslint-disable-next-line no-underscore-dangle
-      styles.forEach((style) => css.add(style._getCss()));
-    },
-    fetch,
-    // Apollo Client for use with react-apollo
-    client,
-    // intl instance as it can be get with injectIntl
-    intl,
-  };
+app.get('*', async (req, res, next) => {
+  try {
+    const location = req.url;
 
-  const component = (
-    <App context={context}>
-      <StaticRouter location={location} context={context}>
-        <Routes />
-      </StaticRouter>
-    </App>
-  );
-  // set children to match context
-  await getDataFromTree(component);
-  await BluebirdPromise.delay(0);
-  const children = await ReactDOM.renderToString(component);
+    // const fragmentMatcher = new IntrospectionFragmentMatcher({
+    //   introspectionQueryResultData: {
+    //     __schema: {
+    //       types: [{
+    //         kind: 'INTERFACE',
+    //         name: 'UserType',
+    //         possibleTypes: [{ name: 'User' }, { name: 'CoSeller' }],
+    //       }],
+    //     },
+    //   },
+    // });
 
-  const data: Html.IProps = {
-    title: 'Typescript ReactQL Starter Kit',
-    description: 'React starter kit using Typescript 2 and Webpack 2.',
-    styles: [
-      { id: 'css', cssText: [...css].join('') },
-    ],
-    scripts: [assets.vendor.js, assets.client.js],
-    app: {
-      apiUrl: api.clientUrl,
-      // state: context.store.getState(),
-      lang: locale,
-    },
-    children,
-  };
+    const cache = new InMemoryCache({
+      dataIdFromObject(value: any) {
+        // Page or Edges
+        if (value.__typename.match(/(Page|Edges)/)) {
+          return null;
+        } else if (value._id) {
+          return `${value.__typename}:${value._id}`;
+        } else if (value.node) {
+          return `${value.__typename}:${value.node._id}`;
+        }
+      },
+      // fragmentMatcher,
+    });
 
-  if (__DEV__) {
-    // tslint:disable-next-line:no-console
-    console.log('Serializing store...');
+    const client = createApolloClient({
+      link: new ServerLink({
+        schema: Schema,
+        rootValue: { request: req },
+        context: {
+          database,
+          user: req.user,
+        },
+      }),
+      ssrMode: true,
+      cache,
+    });
+
+    // Fetch locale's messages
+    const locale = req.language;
+    const intl = await setLocale(client, {
+      locale,
+      initialNow: Date.now(),
+    }, { cache });
+
+    const css = new Set();
+
+    // Global (context) variables that can be easily accessed from any React component
+    // https://facebook.github.io/react/docs/context.html
+    const context = {
+      // Enables critical path CSS rendering
+      // https://github.com/kriasoft/isomorphic-style-loader
+      insertCss: (...styles) => {
+        styles.forEach((style) => css.add(style._getCss()));
+      },
+      // Apollo Client for use with react-apollo
+      client,
+      // intl instance as it can be get with injectIntl
+      intl,
+    };
+
+    const component = (
+      <App context={context}>
+        <StaticRouter location={location} context={context}>
+          <Routes />
+        </StaticRouter>
+      </App>
+    );
+    // set children to match context
+    // FIXME: https://github.com/apollographql/react-apollo/issues/425
+    await getDataFromTree(component);
+    // await BluebirdPromise.delay(0);
+    const children = ReactDOM.renderToString(component);
+
+    const data: Html.IProps = {
+      title: 'Promize',
+      // TODO: description
+      description: 'Promize.',
+      styles: [
+        { id: 'css', cssText: [...css].join('') },
+      ],
+      scripts: [assets.vendor.js, assets.client.js],
+      app: {
+        apiUrl: api.clientUrl,
+        apollo: cache.extract(),
+        lang: locale,
+      },
+      children,
+    };
+
+    if (__DEV__) {
+      // tslint:disable-next-line:no-console
+      console.log('Serializing store...');
+    }
+
+    // rendering html components
+    const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
+    res.status(200).send(`<!doctype html>${html}`);
+  } catch (err) {
+    next(err);
   }
-
-  // rendering html components
-  const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
-  res.status(200).send(`<!doctype html>${html}`);
 });
 
 //

@@ -1,4 +1,3 @@
-// Needed for redux-saga es6 generator support
 // import '!file?name=[name].[ext]!./manifest.json';
 // import 'file?name=[name].[ext]!./.htaccess';
 // Load the favicon, the manifest.json file and the .htaccess file
@@ -6,40 +5,82 @@
 // Import all the third party stuff
 import 'whatwg-fetch';
 
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { HttpLink } from 'apollo-link-http';
+import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
+import { ApolloLink } from 'apollo-link';
+import { WebSocketLink } from 'apollo-link-ws';
+import { createUploadLink } from 'apollo-upload-client';
 import * as FontFaceObserver from 'fontfaceobserver';
+import { getOperationAST } from 'graphql';
 import { createPath } from 'history/PathUtils';
 import * as React from 'react';
-import { ApolloProvider } from 'react-apollo';
 import * as ReactDOM from 'react-dom';
-import { addLocaleData, IntlProvider } from 'react-intl';
+import { addLocaleData } from 'react-intl';
 /* @intl-code-template import ${lang} from 'react-intl/locale-data/${lang}'; */
 import cs from 'react-intl/locale-data/cs';
 import en from 'react-intl/locale-data/en';
 import th from 'react-intl/locale-data/th';
 /* @intl-code-template-end */
-import { BrowserRouter } from 'react-router-dom';
+import { Router } from 'react-router-dom';
+import { createApolloClient } from './apollo';
+import { getIntlContext } from './apollo/intl';
 import App from './components/App';
-import createApolloClient from './core/createApolloClient';
 import { ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
-import createFetch from './createFetch';
-import { local } from './local';
 
 /*
   Apollo Client v2
 */
-const http = new HttpLink({
-  uri: '/graphql',
-  credentials: 'include',
-});
+const link = ApolloLink.split(
+  (operation) => {
+    const operationAST = getOperationAST(operation.query, operation.operationName);
+    return !!operationAST && operationAST.operation === 'subscription';
+  },
+  new WebSocketLink({
+    // uri: 'ws://192.168.43.126:4040/subscriptions',
+    uri: 'ws://localhost:4040/subscriptions',
+    options: {
+      reconnect: true,
+    },
+  }),
+  createUploadLink({
+    uri: '/graphql',
+    credentials: 'include',
+  }),
+);
 
-const apolloClient = createApolloClient({
-  link: local.concat(http),
-  cache: new InMemoryCache(),
+// const fragmentMatcher = new IntrospectionFragmentMatcher({
+//   introspectionQueryResultData: {
+//     __schema: {
+//       types: [{
+//         kind: 'INTERFACE',
+//         name: 'UserType',
+//         possibleTypes: [{ name: 'User' }, { name: 'CoSeller' }],
+//       }, {
+//         kind: 'UNION',
+//         name: 'MessageContent',
+//         possibleTypes: [{ name: 'TextContent' }, { name: 'PictureContent' }, { name: 'CommandContent' }],
+//       }],
+//     },
+//   },
+// });
+
+const cache = new InMemoryCache({
+  dataIdFromObject(value: any) {
+    if (value.__typename.match(/(Page|Edges)/)) {
+      return null;
+    } else if (value._id) {
+      return `${value.__typename}:${value._id}`;
+    } else if (value.node) {
+      return `${value.__typename}:${value.node._id}`;
+    }
+  },
+  // fragmentMatcher,
+}).restore(window.App.apollo);
+const client = createApolloClient({
+  link,
   ssrForceFetchDelay: 100,
+  cache,
 });
 
 /* @intl-code-template addLocaleData(${lang}); */
@@ -56,26 +97,6 @@ openSansObserver.load().then(() => {
   document.body.classList.remove('font-loaded');
 });
 
-// Universal HTTP client
-const fetch = createFetch(self.fetch, {
-  baseUrl: window.App.apiUrl,
-});
-
-// Initialize a new Redux store
-// http://redux.js.org/docs/basics/UsageWithReact.html
-// const store = configureStore(window.App.state, {
-//   history,
-//   fetch,
-//   apolloClient,
-// });
-
-const intl = new IntlProvider({
-  initialNow: Date.now(),
-  // locale,
-  messages: {},
-  defaultLocale: 'en-US',
-}).getChildContext().intl;
-
 const context = {
   // Enables critical path CSS rendering
   // https://github.com/kriasoft/isomorphic-style-loader
@@ -84,11 +105,10 @@ const context = {
     const removeCss = styles.map((x) => x._insertCss());
     return () => { removeCss.forEach((f) => f()); };
   },
-  fetch,
   // For react-apollo
-  client: apolloClient,
+  client,
   // intl instance as it can be get with injectIntl
-  intl,
+  intl: getIntlContext(cache),
 };
 
 // Switch off the native scroll restoration behavior and handle it manually
@@ -104,8 +124,6 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
     elem.parentNode.removeChild(elem);
   }
   onRenderComplete = function renderComplete(route_, location_) {
-    document.title = route_.title;
-
     updateMeta('description', route_.description);
     // Update necessary tags in <head> at runtime here, ie:
     // updateMeta('keywords', route.keywords);
@@ -163,11 +181,12 @@ async function onLocationChange(location?, action?) {
   currentLocation = location;
   appInstance = ReactDOM.hydrate(
     <App context={context}>
-      <BrowserRouter>
+      <Router history={history}>
         <Routes />
-      </BrowserRouter>
+      </Router>
     </App>,
     container,
+    () => onRenderComplete(Routes, location),
   );
 }
 

@@ -28,18 +28,4 @@
   --primary-color: #087378;
   --secondary-color: #5a6669;
 
-  @custom-media --small-xs (width >= 480px);
-  @custom-media --small-sm (width >= 768px);
-  @custom-media --small-md (width >= 992px);
-  @custom-media --small-lg (width >= 1200px);
-
-  --flex {
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-  }
-
-  --sidebar-width: 180px;
-  --minus-sidebar-width: -180px;
-  --search-width: 300px;
 }

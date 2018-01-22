@@ -16,17 +16,6 @@
   margin-left: 0px;
   margin-right: 0px;
   box-sizing: border-box;
-
-  // animation: mainlayout 1.22s 1;
-  // transition-timing-function: ease-in-out;
-
-  &.expanded-left {
-    margin-left: var(--sidebar-width);
-  }
-
-  &.expanded-right {
-    margin-right: var(--search-width);
-  }
 }
 
 .scroll {

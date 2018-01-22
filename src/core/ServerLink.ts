@@ -1,9 +1,7 @@
-import { ApolloLink, Observable, RequestHandler } from 'apollo-link';
+import { ApolloLink, Observable } from 'apollo-link';
 import {
   execute,
   GraphQLSchema,
-  specifiedRules,
-  validate,
 } from 'graphql';
 
 interface FetchOptions {
@@ -31,17 +29,7 @@ export class ServerLink extends ApolloLink {
 
   public request(operation) {
     return new Observable((observer) => {
-      let validationRules = specifiedRules;
-      const customValidationRules = this.optionsData.validationRules;
-      if (customValidationRules) {
-        validationRules = validationRules.concat(customValidationRules);
-      }
-
-      const validationErrors = validate(this.schema, operation.query, validationRules);
-      if (validationErrors.length > 0) {
-        return { errors: validationErrors };
-      }
-
+      let canceled = false;
       execute(
         this.schema,
         operation.query,
@@ -51,10 +39,25 @@ export class ServerLink extends ApolloLink {
         operation.operationName,
       )
         .then((data) => {
+          if (canceled) {
+            return;
+          }
+          // we have data and can send it to back up the link chain
           observer.next(data);
           observer.complete();
+          return data;
         })
-        .catch(observer.error.bind(observer));
+        .catch((err) => {
+          if (canceled) {
+            return;
+          }
+
+          observer.error(err);
+        });
+
+      return () => {
+          canceled = true;
+        };
     });
   }
 }

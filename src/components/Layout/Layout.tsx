@@ -6,10 +6,6 @@ import { Main } from '../Main';
 
 import * as s from './Layout.css';
 
-// TODO not using required
-// tslint:disable-next-line:no-var-requires
-// const MdAdd = require('react-icons/lib/md/add');
-
 namespace Layout {
   export type Props = any;
 }

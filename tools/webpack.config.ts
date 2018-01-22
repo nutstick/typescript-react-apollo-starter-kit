@@ -1,7 +1,5 @@
 import * as AssetsPlugin from 'assets-webpack-plugin';
-// import { CheckerPlugin, TsConfigPathsPlugin } from 'awesome-typescript-loader';
 import * as cssnano from 'cssnano';
-import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
 import * as path from 'path';
 import * as webpack from 'webpack';
 import { Configuration, Resolve } from 'webpack';
@@ -19,6 +17,10 @@ const isAnalyze =
 // You can enforce this for test environments :-)
 const REACT_INTL_ENFORCE_DESCRIPTIONS = false;
 
+const minimizeCssOptions = {
+  discardComments: { removeAll: true },
+};
+
 //
 // Common configuration chunk to be used for both
 // client-side (client.js) and server-side (server.js) bundles
@@ -26,7 +28,7 @@ const REACT_INTL_ENFORCE_DESCRIPTIONS = false;
 
 console.log(path.resolve(__dirname, '../node_modules/react-icons'));
 
-const config: Configuration = {
+const config: any = {
   context: path.resolve(__dirname, '..'),
 
   output: {
@@ -85,6 +87,7 @@ const config: Configuration = {
               ...(isDebug ? [] : ['react-optimize']),
             ],
             plugins: [
+              ...(isDebug ? [] : ['transform-decorators-legacy']),
               // Adds component stack to warning messages
               // https://github.com/babel/babel/tree/master/packages/babel-plugin-transform-react-jsx-source
               ...(isDebug ? [] : ['transform-react-jsx-source']),
@@ -105,7 +108,7 @@ const config: Configuration = {
             ],
           },
         },
-        exclude: /node_modules/,
+        exclude: [/node_modules/],
       },
       {
         test: /react-icons\/(.)*(.js)$/,
@@ -115,29 +118,45 @@ const config: Configuration = {
         },
       },
       {
-        test: /\.css$/,
-        loader: ExtractTextPlugin.extract({ use: ['isomorphic-style-loader', 'css-loader'] }),
-        include: /node_modules/,
-        exclude: path.resolve(__dirname, '../src'),
-      },
-      {
-        test: /\.css$/,
-        use: [
+        test: /\.(css|less|scss|sss)$/,
+        rules: [
+          // Convert CSS into JS module
           {
-            loader: 'isomorphic-style-loader',
+            issuer: { not: [/\.(css|less|scss|sss)$/] },
+            use: 'isomorphic-style-loader',
           },
+
+          // Process external/third-party styles
           {
+            include: /node_modules/,
+            exclude: path.resolve(__dirname, '../src'),
             loader: 'css-loader',
             options: {
-              importLoaders: 1,
               sourceMap: isDebug,
-              modules: true,
-              localIdentName: isDebug ? '[name]-[local]-[hash:base64:5]' : '[hash:base64:5]',
-              minimize: isDebug,
-              discardComments: { removeAll: true },
-              camelCase: 'dashesOnly',
+              minimize: isDebug ? false : minimizeCssOptions,
             },
           },
+
+          // Process internal/project styles (from src folder)
+          {
+            include: path.resolve(__dirname, '../src'),
+            loader: 'css-loader',
+            options: {
+              // CSS Loader https://github.com/webpack/css-loader
+              importLoaders: 1,
+              sourceMap: isDebug,
+              // CSS Modules https://github.com/css-modules/css-modules
+              modules: true,
+              localIdentName: isDebug
+                ? '[name]-[local]-[hash:base64:5]'
+                : '[hash:base64:5]',
+              // CSS Nano http://cssnano.co/
+              minimize: isDebug ? false : minimizeCssOptions,
+              camelCase: false,
+            },
+          },
+
+          // Apply PostCSS plugins including autoprefixer
           {
             loader: 'postcss-loader',
             options: {
@@ -146,21 +165,24 @@ const config: Configuration = {
               },
             },
           },
+
+          // Compile Less to CSS
+          // https://github.com/webpack-contrib/less-loader
+          // Install dependencies before uncommenting: yarn add --dev less-loader less
+          // {
+          //   test: /\.less$/,
+          //   loader: 'less-loader',
+          // },
+
+          // Compile Sass to CSS
+          // https://github.com/webpack-contrib/sass-loader
+          // Install dependencies before uncommenting: yarn add --dev sass-loader node-sass
+          // {
+          //   test: /\.(scss|sass)$/,
+          //   loader: 'sass-loader',
+          // },
         ],
-        include: path.resolve(__dirname, '../src'),
-        exclude: /node_modules/,
       },
-      // {
-      //   test: /\.scss$/,
-      //   loader: ExtractTextPlugin.extract({
-      //     fallback: 'style-loader',
-      //     use: [
-      //       `css-loader?${JSON.stringify({ sourceMap: isDebug, minimize: !isDebug })}`,
-      //       'postcss-loader?pack=sass',
-      //       'sass-loader',
-      //     ],
-      //   }),
-      // },
       {
         test: /\.json$/,
         loader: 'json-loader',
@@ -248,13 +270,6 @@ const clientConfig: Configuration = {
   // },
 
   plugins: [
-
-    new ExtractTextPlugin('[name].css'),
-
-    // new webpack.LoaderOptionsPlugin({
-    //   minimize: !isDebug,
-    //   debug: !isDebug,
-    // }),
 
     // Define free variables
     // https://webpack.github.io/docs/list-of-plugins.html#defineplugin
@@ -353,6 +368,10 @@ const serverConfig: Configuration = {
     libraryTarget: 'commonjs2',
   },
 
+  resolve: {
+    ...config.resolve,
+  },
+
   module: {
     ...config.module,
 
@@ -439,8 +458,6 @@ const serverConfig: Configuration = {
 
   plugins: [
 
-    new ExtractTextPlugin('[name].css'),
-
     // Define free variables
     // https://webpack.github.io/docs/list-of-plugins.html#defineplugin
     new webpack.DefinePlugin({
@@ -448,10 +465,6 @@ const serverConfig: Configuration = {
       'process.env.BROWSER': false,
       '__DEV__': isDebug,
     }),
-
-    // Do not create separate chunks of the server bundle
-    // https://webpack.github.io/docs/list-of-plugins.html#limitchunkcountplugin
-    // new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
 
     // Adds a banner to the top of each generated chunk
     // https://webpack.js.org/plugins/banner-plugin/
@@ -473,4 +486,31 @@ const serverConfig: Configuration = {
   },
 };
 
-export default [clientConfig, serverConfig];
+//
+// Configuration for the socket bundle (socket.js)
+// -----------------------------------------------------------------------------
+
+const socketConfig: Configuration = {
+  ...serverConfig,
+
+  name: 'socket',
+  target: 'node',
+
+  entry: {
+    socket: ['babel-polyfill', './src/main.socket.ts'],
+  },
+
+  plugins: [
+    ...serverConfig.plugins,
+    // Define free variables
+    // https://webpack.github.io/docs/list-of-plugins.html#defineplugin
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': isDebug ? '"development"' : '"production"',
+      'process.env.BROWSER': false,
+      'process.env.SOCKET': true,
+      '__DEV__': isDebug,
+    }),
+  ],
+};
+
+export default [clientConfig, serverConfig, socketConfig];
