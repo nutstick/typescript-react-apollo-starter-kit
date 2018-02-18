@@ -1,5 +1,5 @@
 import { seed } from '../seeds/mongo-seed';
-import { database } from '../src/schema/models';
+import { database } from '../src/schema';
 
 /**
  * Seeds database.

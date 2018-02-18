@@ -13,6 +13,7 @@ export namespace Html {
     scripts?: string[];
     app: {
       apiUrl?: string,
+      wsUrl?: string,
       apollo?: any,
       lang: string,
     };

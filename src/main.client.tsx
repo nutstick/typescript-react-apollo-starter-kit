@@ -6,10 +6,7 @@
 import 'whatwg-fetch';
 
 import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
-import { ApolloLink } from 'apollo-link';
-import { WebSocketLink } from 'apollo-link-ws';
-import { createUploadLink } from 'apollo-upload-client';
-import * as FontFaceObserver from 'fontfaceobserver';
+import { HttpLink } from 'apollo-link-http';
 import { getOperationAST } from 'graphql';
 import { createPath } from 'history/PathUtils';
 import * as React from 'react';
@@ -31,39 +28,10 @@ import history from './core/history';
 /*
   Apollo Client v2
 */
-const link = ApolloLink.split(
-  (operation) => {
-    const operationAST = getOperationAST(operation.query, operation.operationName);
-    return !!operationAST && operationAST.operation === 'subscription';
-  },
-  new WebSocketLink({
-    // uri: 'ws://192.168.43.126:4040/subscriptions',
-    uri: 'ws://localhost:4040/subscriptions',
-    options: {
-      reconnect: true,
-    },
-  }),
-  createUploadLink({
-    uri: '/graphql',
-    credentials: 'include',
-  }),
-);
-
-// const fragmentMatcher = new IntrospectionFragmentMatcher({
-//   introspectionQueryResultData: {
-//     __schema: {
-//       types: [{
-//         kind: 'INTERFACE',
-//         name: 'UserType',
-//         possibleTypes: [{ name: 'User' }, { name: 'CoSeller' }],
-//       }, {
-//         kind: 'UNION',
-//         name: 'MessageContent',
-//         possibleTypes: [{ name: 'TextContent' }, { name: 'PictureContent' }, { name: 'CommandContent' }],
-//       }],
-//     },
-//   },
-// });
+const local = new HttpLink({
+  uri: window.App.apiUrl,
+  credentials: 'include',
+});
 
 const cache = new InMemoryCache({
   dataIdFromObject(value: any) {
@@ -78,9 +46,10 @@ const cache = new InMemoryCache({
   // fragmentMatcher,
 }).restore(window.App.apollo);
 const client = createApolloClient({
-  link,
+  local,
   ssrForceFetchDelay: 100,
   cache,
+  wsEndpoint: window.App.wsUrl,
 });
 
 /* @intl-code-template addLocaleData(${lang}); */

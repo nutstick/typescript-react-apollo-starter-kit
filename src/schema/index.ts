@@ -1,40 +1,11 @@
-import { GraphQLSchema, GraphQLString } from 'graphql';
-import * as GraphQLDate from 'graphql-date';
-import { makeExecutableSchema } from 'graphql-tools';
-import { print } from 'graphql/language';
-import * as SchemaType from './schema.gql';
-import * as IntlMessage from './types/IntlMessage';
-import * as Mutation from './types/Mutation';
-import * as Pagination from './types/Pagination';
-import * as Query from './types/Query';
-import * as Subscription from './types/Subscription';
-import * as User from './types/User';
+import { Core, Model } from 'iridium';
+import { mongodb } from '../config';
+import { IUserDocument, User } from './models/User';
 
-const schema = [print(SchemaType)];
-const modules = [
-  Pagination,
-  User,
-  IntlMessage,
-  Query,
-  Subscription,
-  Mutation,
-];
+class Database extends Core {
+  User = new Model<IUserDocument, User>(this, User);
+}
 
-const resolvers = Object.assign({
-    Date: GraphQLDate,
-    // Time: GraphQLString,
-  },
-  ...(modules.map((m) => m.resolver).filter((res) => res)),
-);
-const typeDefs = schema.concat(modules.map((m) => print(m.type)).filter((res) => !!res));
+const database = new Database({ ...mongodb });
 
-const Schema = makeExecutableSchema({
-  logger: console,
-  resolverValidationOptions: {
-    requireResolversForNonScalar: false,
-  },
-  resolvers,
-  typeDefs,
-});
-
-export { Schema };
+export { database, Database };

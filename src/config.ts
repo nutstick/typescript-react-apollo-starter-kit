@@ -38,14 +38,16 @@ export const redis = {
   port: parseInt(process.env.REDIS_PORT, 10) || 6379,
 };
 
-
 export const api = {
   // API URL to be used in the client-side code
   clientUrl: process.env.API_CLIENT_URL || '',
   // API URL to be used in the server-side code
   serverUrl:
     process.env.API_SERVER_URL ||
-    `http://localhost:${process.env.PORT || 3000}`,
+    `http://localhost:${port}`,
+  // WS URL
+  wsUrl:
+    process.env.WS_URL || `ws://localhost:${wsport}/subscriptions`,
 };
 
 export const databaseUrl = process.env.DATABASE_URL || 'sqlite:database.sqlite';

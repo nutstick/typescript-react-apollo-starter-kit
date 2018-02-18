@@ -19,6 +19,7 @@ declare interface Window {
   RSK_ENTRY: any;
   App: {
     apiUrl: string,
+    wsUrl: string,
     apollo: any,
     lang: string,
   };

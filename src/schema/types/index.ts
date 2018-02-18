@@ -1,4 +1,4 @@
-import { Database } from '../models';
+import { Database } from '../';
 
 export interface IContext {
   database: Database;

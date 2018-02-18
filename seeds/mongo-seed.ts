@@ -1,6 +1,6 @@
 import generate from 'babel-generator';
 import { ObjectID as id } from 'mongodb';
-import { Database } from '../src/schema/models';
+import { Database } from '../src/schema';
 // tslint:disable-next-line:no-var-requires
 const m = require('casual');
 

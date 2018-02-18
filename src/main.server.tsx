@@ -24,14 +24,14 @@ import * as LOCALEQUERY from './apollo/intl/LocaleQuery.gql';
 import * as assets from './assets.json';
 import App from './components/App';
 import { Html } from './components/Html';
-import { api, auth, locales, port, wsport } from './config';
+import { api, auth, locales, port, uploadDir, wsport } from './config';
 import passport from './core/passport';
 import { ServerLink } from './core/ServerLink';
 import Routes from './routes';
 import ErrorPage from './routes/Error/ErrorPage';
 import * as errorPageStyle from './routes/Error/ErrorPage.css';
-import { Schema } from './schema';
-import { database } from './schema/models';
+import { database } from './schema';
+import { Schema } from './schema/types/Schema';
 /**
  * Express app
  */
@@ -83,7 +83,6 @@ app.use(expressJwt({
 }));
 // Error handler for express-jwt
 app.use((err, req, res, next) => {
-  // eslint-disable-line no-unused-vars
   if (err instanceof Jwt401Error) {
     // tslint:disable-next-line:no-console
     console.error('[express-jwt-error]', req.cookies.id_token);
@@ -122,20 +121,19 @@ app.get('/logout', (req, res) => {
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
-app.use('/graphql', bodyParser.json(), apolloUploadExpress({ uploadDir: './public/images' }),
-  graphqlExpress((req, res) => ({
-    schema: Schema,
-    context: {
-      database,
-      req,
-      res,
-      user: req.user,
-    },
-    rootValue: { request: req },
-  })));
+app.use('/graphql', bodyParser.json(), graphqlExpress((req, res) => ({
+  schema: Schema,
+  context: {
+    database,
+    request: req,
+    response: res,
+  },
+  rootValue: { request: req },
+})));
+
 app.get('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
-  subscriptionsEndpoint: `ws://localhost:${wsport}/subscriptions`,
+  subscriptionsEndpoint: api.wsUrl,
 }));
 
 //
@@ -207,7 +205,7 @@ app.get('*', async (req, res, next) => {
     });
 
     const client = createApolloClient({
-      link: new ServerLink({
+      local: new ServerLink({
         schema: Schema,
         rootValue: { request: req },
         context: {
@@ -264,7 +262,8 @@ app.get('*', async (req, res, next) => {
       ],
       scripts: [assets.vendor.js, assets.client.js],
       app: {
-        apiUrl: api.clientUrl,
+        apiUrl: api.serverUrl,
+        wsUrl: api.wsUrl,
         apollo: cache.extract(),
         lang: locale,
       },

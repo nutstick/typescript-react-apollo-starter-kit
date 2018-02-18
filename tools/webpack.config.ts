@@ -486,31 +486,4 @@ const serverConfig: Configuration = {
   },
 };
 
-//
-// Configuration for the socket bundle (socket.js)
-// -----------------------------------------------------------------------------
-
-const socketConfig: Configuration = {
-  ...serverConfig,
-
-  name: 'socket',
-  target: 'node',
-
-  entry: {
-    socket: ['babel-polyfill', './src/main.socket.ts'],
-  },
-
-  plugins: [
-    ...serverConfig.plugins,
-    // Define free variables
-    // https://webpack.github.io/docs/list-of-plugins.html#defineplugin
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': isDebug ? '"development"' : '"production"',
-      'process.env.BROWSER': false,
-      'process.env.SOCKET': true,
-      '__DEV__': isDebug,
-    }),
-  ],
-};
-
-export default [clientConfig, serverConfig, socketConfig];
+export default [clientConfig, serverConfig];
