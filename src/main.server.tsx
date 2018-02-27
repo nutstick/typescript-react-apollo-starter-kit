@@ -13,13 +13,12 @@ import * as nodeFetch from 'node-fetch';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
 import * as React from 'react';
-import { getDataFromTree } from 'react-apollo';
+import { renderToStringWithData } from 'react-apollo';
 import * as ReactDOM from 'react-dom/server';
 import { IntlProvider } from 'react-intl';
 import { StaticRouter } from 'react-router';
 import { createApolloClient } from './apollo';
-import { IntlQuery } from './apollo/intl';
-import * as INTLQUERY from './apollo/intl/IntlQuery.gql';
+import * as IntlQuery from './apollo/intl/IntlQuery.gql';
 import * as LOCALEQUERY from './apollo/intl/LocaleQuery.gql';
 import * as assets from './assets.json';
 import App from './components/App';
@@ -140,8 +139,8 @@ app.get('/graphiql', graphiqlExpress({
 // Register server-side rendering middleware
 // -----------------------------------------------------------------------------
 const setLocale = async (client: ApolloClient<any>, { locale, initialNow }, { cache }) => {
-  const { data } = await client.query<IntlQuery>({
-    query: INTLQUERY,
+  const { data } = await client.query<IntlQuery.query>({
+    query: IntlQuery,
     variables: { locale },
   });
 
@@ -247,11 +246,8 @@ app.get('*', async (req, res, next) => {
         </StaticRouter>
       </App>
     );
-    // set children to match context
-    // FIXME: https://github.com/apollographql/react-apollo/issues/425
-    await getDataFromTree(component);
-    // await BluebirdPromise.delay(0);
-    const children = ReactDOM.renderToString(component);
+
+    const children = await renderToStringWithData(component);
 
     const data: Html.IProps = {
       title: 'Promize',
@@ -327,9 +323,8 @@ if (!module.hot) {
 // -----------------------------------------------------------------------------
 if (module.hot) {
   app.hot = module.hot;
-  // module.hot.accept('./routes');
-
-  module.hot.accept();
+  module.hot.accept('./routes');
+  // module.hot.accept();
 }
 
 export default app;

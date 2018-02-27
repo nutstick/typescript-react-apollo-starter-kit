@@ -58,14 +58,6 @@ addLocaleData(cs);
 addLocaleData(th);
 /* @intl-code-template-end */
 
-const openSansObserver = new FontFaceObserver('Open Sans', {});
-
-openSansObserver.load().then(() => {
-  document.body.classList.add('font-loaded');
-}, () => {
-  document.body.classList.remove('font-loaded');
-});
-
 const context = {
   // Enables critical path CSS rendering
   // https://github.com/kriasoft/isomorphic-style-loader

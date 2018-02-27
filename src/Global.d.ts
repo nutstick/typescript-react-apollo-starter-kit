@@ -44,10 +44,10 @@ declare module 'gaze' {
   export = _;
 }
 
-declare module '*.gql' {
-  const _: DocumentNode;
-  export = _;
- }
+// declare module '*.gql' {
+//   const _: DocumentNode;
+//   export = _;
+// }
 
 declare module '*.json' {
   const _: any;

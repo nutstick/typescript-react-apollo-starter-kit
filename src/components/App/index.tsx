@@ -3,9 +3,8 @@ import * as PropTypes from 'prop-types';
 import * as React from 'react';
 import { ApolloProvider } from 'react-apollo';
 import { IntlProvider } from 'react-intl';
-import { IntlQuery, LocaleQuery } from '../../apollo/intl';
-import * as INTLQUERY from '../../apollo/intl/IntlQuery.gql';
-import * as LOCALEQUERY from '../../apollo/intl/LocaleQuery.gql';
+import * as IntlQuery from '../../apollo/intl/IntlQuery.gql';
+import * as LocaleQuery from '../../apollo/intl/LocaleQuery.gql';
 
 namespace App {
   export interface Context {
@@ -65,14 +64,14 @@ class App extends React.Component<App.Props> {
     const s = this.setState.bind(this);
     const { client } = this.props.context;
 
-    this.unsubscribe = client.watchQuery<LocaleQuery>({
-      query: LOCALEQUERY,
+    this.unsubscribe = client.watchQuery<LocaleQuery.query>({
+      query: LocaleQuery,
     }).subscribe({
       next({ data }) {
         const { locale, initialNow } = data;
         // TODO: fetchPolicy network-only to manage some way
-        client.query<IntlQuery>({
-          query: INTLQUERY,
+        client.query<IntlQuery.query>({
+          query: IntlQuery,
           variables: { locale },
           fetchPolicy: 'network-only',
         })

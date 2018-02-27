@@ -1,27 +1,14 @@
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloClient } from 'apollo-client';
 import { IntlProvider } from 'react-intl';
-import * as INTLQUERY from './IntlQuery.gql';
-import * as LOCALEQUERY from './LocaleQuery.gql';
+import * as IntlQuery from './IntlQuery.gql';
+import * as LocaleQuery from './LocaleQuery.gql';
 import * as SETLOCALEMUTATION from './SetLocaleMutation.gql';
 
-export interface IntlQuery {
-  intl: Array<{
-    id: string;
-    message: string;
-  }>;
-}
-
-export  interface LocaleQuery {
-  locale: string;
-  initialNow: number;
-  availableLocales: string[];
-}
-
 export function getIntlContext(cache: InMemoryCache) {
-  const { locale, initialNow } = cache.readQuery<LocaleQuery>({ query: LOCALEQUERY });
-  const { intl } = cache.readQuery<IntlQuery>({
-    query: INTLQUERY,
+  const { locale, initialNow } = cache.readQuery<LocaleQuery.query>({ query: LocaleQuery });
+  const { intl } = cache.readQuery<IntlQuery.query>({
+    query: IntlQuery,
     variables: { locale },
   });
 
@@ -41,7 +28,7 @@ export function getIntlContext(cache: InMemoryCache) {
 }
 
 export function setLocale(client: ApolloClient<any>) {
-  client.watchQuery<LocaleQuery>({ query: LOCALEQUERY }).subscribe({
+  client.watchQuery<LocaleQuery.query>({ query: LocaleQuery }).subscribe({
     next: ({ data }) => {
       const { locale } = data;
       client.mutate({ mutation: SETLOCALEMUTATION, variables: { locale } });
@@ -57,9 +44,9 @@ export const state = {
   Mutation: {
     setLocale(result, variables, { cache }: { cache: InMemoryCache }) {
       const { locale } = variables;
-      const { availableLocales, initialNow } = cache.readQuery<LocaleQuery>({ query: LOCALEQUERY });
+      const { availableLocales, initialNow } = cache.readQuery<LocaleQuery.query>({ query: LocaleQuery });
 
-      cache.writeQuery({ query: LOCALEQUERY, variables, data: { locale, initialNow, availableLocales } });
+      cache.writeQuery({ query: LocaleQuery, variables, data: { locale, initialNow, availableLocales } });
 
       if (process.env.BROWSER) {
         const maxAge = 3650 * 24 * 3600; // 10 years in seconds
