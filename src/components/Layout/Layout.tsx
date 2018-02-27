@@ -1,6 +1,5 @@
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
-import { connect } from 'react-redux';
 import { Header } from '../Header';
 import { Main } from '../Main';
 

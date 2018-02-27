@@ -5,17 +5,16 @@
 // Import all the third party stuff
 import 'whatwg-fetch';
 
-import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpLink } from 'apollo-link-http';
-import { getOperationAST } from 'graphql';
 import { createPath } from 'history/PathUtils';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { addLocaleData } from 'react-intl';
 /* @intl-code-template import ${lang} from 'react-intl/locale-data/${lang}'; */
-import cs from 'react-intl/locale-data/cs';
-import en from 'react-intl/locale-data/en';
-import th from 'react-intl/locale-data/th';
+import * as cs from 'react-intl/locale-data/cs';
+import * as en from 'react-intl/locale-data/en';
+import * as th from 'react-intl/locale-data/th';
 /* @intl-code-template-end */
 import { Router } from 'react-router-dom';
 import { createApolloClient } from './apollo';

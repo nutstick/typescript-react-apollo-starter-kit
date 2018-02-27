@@ -1,21 +1,25 @@
 @import '../variables.css';
 
 :root {
-  --brand-color: #61dafb;
+  --brand-color: #366977;
+  --background-image: linear-gradient(45deg, rgba(95, 212, 224, 0.5), rgba(35, 0, 173, 0.5));
 }
 
 .root {
-  background: #373277;
+  background: var(--brand-color);
+  background-image: var(--background-image);
   color: #fff;
+  padding: 1em 0 2em;
 
   > .topnav {
     display: flex;
     justify-content: space-between;
+    padding: 0 1.5em;
   }
-/* 
+
   > .navigation {
-    flex: 1 1 auto;
-  } */
+    margin-top: 1.5em;
+  }
 
   > .title {
     text-align: center;
@@ -28,7 +32,6 @@
       margin: 0;
       font-size: 2.25rem;
       font-weight: bold;
-      letter-spacing: -.025em;
       color: #fff;
     }
   }

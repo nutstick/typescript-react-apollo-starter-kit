@@ -64,13 +64,13 @@ class App extends React.Component<App.Props> {
     const s = this.setState.bind(this);
     const { client } = this.props.context;
 
-    this.unsubscribe = client.watchQuery<LocaleQuery.query>({
+    this.unsubscribe = client.watchQuery<LocaleQuery.Query>({
       query: LocaleQuery,
     }).subscribe({
       next({ data }) {
         const { locale, initialNow } = data;
         // TODO: fetchPolicy network-only to manage some way
-        client.query<IntlQuery.query>({
+        client.query<IntlQuery.Query>({
           query: IntlQuery,
           variables: { locale },
           fetchPolicy: 'network-only',

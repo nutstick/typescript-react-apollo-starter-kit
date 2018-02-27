@@ -1,3 +1,5 @@
 mutation SetLocale($locale: String) {
-  setLocale(locale: $locale) @client
+  setLocale(locale: $locale) @client {
+    locale
+  }
 }

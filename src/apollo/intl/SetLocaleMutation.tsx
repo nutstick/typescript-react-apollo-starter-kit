@@ -1,13 +1,13 @@
-import { DocumentNode } from 'graphql';
-import * as React from 'react';
-// TODO: react-apollo@next not yet has Mutation component
-// import { Mutation } from 'react-apollo';
+import { Mutation } from 'react-apollo';
 import * as SetLocaleMutationGraphQL from './SetLocaleMutation.gql';
 
-// export namespace LocaleQuery {
-//   export type result = LocaleQueryGraphQL.query;
-// }
+export namespace SetLocaleMutation {
+  export interface Variables {
+    locale: string;
+  }
+  export type Result = SetLocaleMutationGraphQL.Payload;
+}
 
-// export class LocaleQuery extends Query<LocaleQueryGraphQL.query> {
-//   static query = LocaleQueryGraphQL;
-// }
+export class SetLocaleMutation extends Mutation<SetLocaleMutation.Result, SetLocaleMutation.Variables> {
+  static mutation = SetLocaleMutationGraphQL;
+}

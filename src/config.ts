@@ -44,7 +44,7 @@ export const api = {
   // API URL to be used in the server-side code
   serverUrl:
     process.env.API_SERVER_URL ||
-    `http://localhost:${port}`,
+    `http://localhost:${port}/graphql`,
   // WS URL
   wsUrl:
     process.env.WS_URL || `ws://localhost:${wsport}/subscriptions`,

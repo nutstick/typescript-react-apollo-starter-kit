@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400');
+
 :root {
   /*
    * Typography
    * ======================================================================== */
 
-  --font-family-base: 'Segoe UI', 'HelveticaNeue-Light', sans-serif;
+  --font-family-base: 'Roboto', 'HelveticaNeue-Light', sans-serif;
 
   /*
    * Layout

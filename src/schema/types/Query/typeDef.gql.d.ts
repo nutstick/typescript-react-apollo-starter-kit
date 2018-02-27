@@ -1,7 +1,6 @@
 import { DocumentNode } from 'graphql';
-
-import { IUser } from '../User';
 import { IIntlMessage } from '../IntlMessage';
+import { IUser } from '../User';
 
 declare const _: DocumentNode;
 export = _;

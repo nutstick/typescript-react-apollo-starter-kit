@@ -1,4 +1,3 @@
-import { GraphQLSchema, GraphQLString } from 'graphql';
 import * as GraphQLDate from 'graphql-date';
 import { makeExecutableSchema } from 'graphql-tools';
 import { print } from 'graphql/language';

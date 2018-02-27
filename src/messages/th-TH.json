@@ -1,27 +1,9 @@
 [
   {
-    "id": "header.banner.desc",
-    "description": "Description in header",
-    "defaultMessage": "Complex web apps made easy",
-    "message": "",
-    "files": [
-      "src/components/Header/Header.tsx"
-    ]
-  },
-  {
-    "id": "header.banner.title",
-    "description": "Title in page header",
-    "defaultMessage": "Reacts",
-    "message": "",
-    "files": [
-      "src/components/Header/Header.tsx"
-    ]
-  },
-  {
     "id": "header.brand",
     "description": "Brand name displayed in header",
-    "defaultMessage": "Your Company Brand",
-    "message": "",
+    "defaultMessage": "Typescript React Starter Kit",
+    "message": "Typescript React Starter Kit",
     "files": [
       "src/components/Header/Header.tsx"
     ]
@@ -30,43 +12,25 @@
     "id": "navigation.about",
     "description": "About link in header",
     "defaultMessage": "About",
-    "message": "",
+    "message": "เกี่ยบกับเรา",
     "files": [
       "src/components/Navigation/Navigation.tsx"
     ]
   },
   {
-    "id": "navigation.login",
-    "description": "Log in link in header",
-    "defaultMessage": "Log in",
-    "message": "",
+    "id": "navigation.examples",
+    "description": "Examples link in header",
+    "defaultMessage": "Examples",
+    "message": "ตัวอย่าง",
     "files": [
       "src/components/Navigation/Navigation.tsx"
     ]
   },
   {
-    "id": "navigation.separator.or",
-    "description": "Last separator in list, lowercase \"or\"",
-    "defaultMessage": "or",
-    "message": "",
-    "files": [
-      "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "navigation.signup",
-    "description": "Sign up link in header",
-    "defaultMessage": "Sign up",
-    "message": "",
-    "files": [
-      "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "navigation.todos",
-    "description": "Todos link in header",
-    "defaultMessage": "Todo",
-    "message": "",
+    "id": "navigation.getstarted",
+    "description": "Get Started link in header",
+    "defaultMessage": "Get Started",
+    "message": "เริ่มต้น",
     "files": [
       "src/components/Navigation/Navigation.tsx"
     ]

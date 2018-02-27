@@ -6,8 +6,8 @@ import * as LocaleQuery from './LocaleQuery.gql';
 import * as SETLOCALEMUTATION from './SetLocaleMutation.gql';
 
 export function getIntlContext(cache: InMemoryCache) {
-  const { locale, initialNow } = cache.readQuery<LocaleQuery.query>({ query: LocaleQuery });
-  const { intl } = cache.readQuery<IntlQuery.query>({
+  const { locale, initialNow } = cache.readQuery<LocaleQuery.Query>({ query: LocaleQuery });
+  const { intl } = cache.readQuery<IntlQuery.Query>({
     query: IntlQuery,
     variables: { locale },
   });
@@ -28,7 +28,7 @@ export function getIntlContext(cache: InMemoryCache) {
 }
 
 export function setLocale(client: ApolloClient<any>) {
-  client.watchQuery<LocaleQuery.query>({ query: LocaleQuery }).subscribe({
+  client.watchQuery<LocaleQuery.Query>({ query: LocaleQuery }).subscribe({
     next: ({ data }) => {
       const { locale } = data;
       client.mutate({ mutation: SETLOCALEMUTATION, variables: { locale } });
@@ -44,7 +44,7 @@ export const state = {
   Mutation: {
     setLocale(result, variables, { cache }: { cache: InMemoryCache }) {
       const { locale } = variables;
-      const { availableLocales, initialNow } = cache.readQuery<LocaleQuery.query>({ query: LocaleQuery });
+      const { availableLocales, initialNow } = cache.readQuery<LocaleQuery.Query>({ query: LocaleQuery });
 
       cache.writeQuery({ query: LocaleQuery, variables, data: { locale, initialNow, availableLocales } });
 
@@ -53,7 +53,10 @@ export const state = {
         document.cookie = `lang=${locale};path=/;max-age=${maxAge}`;
       }
 
-      return null;
+      return {
+        locale,
+        __typename: 'SetLocalePayload',
+      };
     },
   },
 };

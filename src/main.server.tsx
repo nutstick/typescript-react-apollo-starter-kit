@@ -1,7 +1,6 @@
-import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloClient } from 'apollo-client';
 import { graphiqlExpress, graphqlExpress } from 'apollo-server-express';
-import { apolloUploadExpress } from 'apollo-upload-server';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
@@ -9,7 +8,6 @@ import * as expressJwt from 'express-jwt';
 import { UnauthorizedError as Jwt401Error } from 'express-jwt';
 import * as requestLanguage from 'express-request-language';
 import * as jwt from 'jsonwebtoken';
-import * as nodeFetch from 'node-fetch';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
 import * as React from 'react';
@@ -23,7 +21,7 @@ import * as LOCALEQUERY from './apollo/intl/LocaleQuery.gql';
 import * as assets from './assets.json';
 import App from './components/App';
 import { Html } from './components/Html';
-import { api, auth, locales, port, uploadDir, wsport } from './config';
+import { api, auth, locales, port } from './config';
 import passport from './core/passport';
 import { ServerLink } from './core/ServerLink';
 import Routes from './routes';
@@ -139,7 +137,7 @@ app.get('/graphiql', graphiqlExpress({
 // Register server-side rendering middleware
 // -----------------------------------------------------------------------------
 const setLocale = async (client: ApolloClient<any>, { locale, initialNow }, { cache }) => {
-  const { data } = await client.query<IntlQuery.query>({
+  const { data } = await client.query<IntlQuery.Query>({
     query: IntlQuery,
     variables: { locale },
   });

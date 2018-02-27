@@ -4,7 +4,7 @@ declare const _: DocumentNode;
 export = _;
 
 declare namespace _ {
-  export interface query {
+  export interface Query {
     locale: string;
     initialNow: number;
     availableLocales: string[];

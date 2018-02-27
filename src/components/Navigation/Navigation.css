@@ -1,0 +1,33 @@
+.root {
+  text-align: center;
+}
+
+.link {
+  box-sizing: border-box;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  outline: 0;
+  border: none;
+  white-space: nowrap;
+  vertical-align: baseline;
+  text-decoration: none;
+  margin: 0;
+  line-height: 36px;
+  font-size: 1.25em;
+  font-weight: 300;
+  color: #fff;
+  opacity: .75;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:not(:first-child) {
+    ::before {
+      content: '\00B7';
+      margin: 0 .125rem;
+      opacity: .25 !important;
+    }
+  }
+}

@@ -1,26 +1,8 @@
 [
   {
-    "id": "header.banner.desc",
-    "description": "Description in header",
-    "defaultMessage": "Complex web apps made easy",
-    "message": "",
-    "files": [
-      "src/components/Header/Header.tsx"
-    ]
-  },
-  {
-    "id": "header.banner.title",
-    "description": "Title in page header",
-    "defaultMessage": "Reacts",
-    "message": "",
-    "files": [
-      "src/components/Header/Header.tsx"
-    ]
-  },
-  {
     "id": "header.brand",
     "description": "Brand name displayed in header",
-    "defaultMessage": "Your Company Brand",
+    "defaultMessage": "Typescript React Starter Kit",
     "message": "",
     "files": [
       "src/components/Header/Header.tsx"
@@ -36,36 +18,18 @@
     ]
   },
   {
-    "id": "navigation.login",
-    "description": "Log in link in header",
-    "defaultMessage": "Log in",
+    "id": "navigation.examples",
+    "description": "Examples link in header",
+    "defaultMessage": "Examples",
     "message": "",
     "files": [
       "src/components/Navigation/Navigation.tsx"
     ]
   },
   {
-    "id": "navigation.separator.or",
-    "description": "Last separator in list, lowercase \"or\"",
-    "defaultMessage": "or",
-    "message": "",
-    "files": [
-      "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "navigation.signup",
-    "description": "Sign up link in header",
-    "defaultMessage": "Sign up",
-    "message": "",
-    "files": [
-      "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "navigation.todos",
-    "description": "Todos link in header",
-    "defaultMessage": "Todo",
+    "id": "navigation.getstarted",
+    "description": "Get Started link in header",
+    "defaultMessage": "Get Started",
     "message": "",
     "files": [
       "src/components/Navigation/Navigation.tsx"

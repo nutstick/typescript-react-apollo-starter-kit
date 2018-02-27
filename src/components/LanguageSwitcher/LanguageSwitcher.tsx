@@ -1,9 +1,7 @@
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
-import { ChildProps, graphql, Query } from 'react-apollo';
-import { Dropdown } from 'semantic-ui-react';
-// import * as SETLOCALEMUTATION from '../../apollo/intl/SetLocaleMutation.gql';
 import { LocaleQuery } from '../../apollo/intl/LocaleQuery';
+import { SetLocaleMutation } from '../../apollo/intl/SetLocaleMutation';
 import * as s from './LanguageSwitcher.css';
 
 namespace LanguageSwitcher {
@@ -12,8 +10,6 @@ namespace LanguageSwitcher {
 }
 
 @withStyles(s)
-// @graphql<LocaleQuery, {}>(LOCALEQUERY)
-// @graphql<{}, {}>(SETLOCALEMUTATION)
 export class LanguageSwitcher extends React.Component<LanguageSwitcher.Props> {
   public render() {
     return (
@@ -35,26 +31,32 @@ export class LanguageSwitcher extends React.Component<LanguageSwitcher.Props> {
 
             const isSelected = (locale_) => locale_ === locale;
 
-            return (<div>
-              {availableLocales.map((locale_) =>
-                <span key={locale_}>
-                  {isSelected(locale_)
-                    ? <span>
-                        {localeName(locale_)}
-                      </span>
-                    : <a
-                        href={`?lang=${locale_}`}
-                        onClick={(e) => {
-                          // FIXME: React Apollo@next not yet has Mutation Component
-                          // this.props.mutate({ variables: { locale: locale_ } });
-                          e.preventDefault();
-                        }}
-                      >
-                        {localeName(locale_)}
-                      </a>}{' '}
-                </span>,
-              )}
-            </div>);
+            return (
+              <SetLocaleMutation mutation={SetLocaleMutation.mutation}>
+                {(mutate) => {
+                  return <div>
+                    {availableLocales.map((locale_) =>
+                      <span key={locale_}>
+                        {isSelected(locale_)
+                          ? <span className={s.selected}>
+                              {localeName(locale_)}
+                            </span>
+                          : <a
+                              className={s.link}
+                              href={`?lang=${locale_}`}
+                              onClick={(e) => {
+                                mutate({ variables: { locale: locale_ } });
+                                e.preventDefault();
+                              }}
+                            >
+                              {localeName(locale_)}
+                            </a>}{' '}
+                      </span>,
+                    )}
+                  </div>;
+                }}
+              </SetLocaleMutation>
+            );
           }
         }}
       </LocaleQuery>

@@ -1,5 +1,5 @@
 import * as Iridium from 'iridium';
-import { Collection, Index, Instance, Model, ObjectID, Property } from 'iridium';
+import { Collection, Index, Instance, ObjectID, Property } from 'iridium';
 import { Account, IAccountDocument } from './account';
 
 interface IUserDocument {

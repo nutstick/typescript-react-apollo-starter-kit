@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import { auth, uploadDir } from '../../../config';
+import { auth } from '../../../config';
 import { IResolver } from '../index';
 
 const resolver: IResolver<any, any> = {
