@@ -1,0 +1,29 @@
+version: '3.3'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+
+  # redis:
+  #   image: redis
+  #   container_name: redis
+
+  server:
+    build: .
+    container_name: server
+    ports:
+      - "3000:3000"
+      - "4040:4040"
+    links:
+      - mongodb:mongodb
+      # - redis:redis
+    depends_on:
+      - mongodb
+      # - redis
+    environment:
+      - MONGO_HOST=mongodb
+      # - REDIS_HOST=redis
+    volumes:
+      - .:/app
+      - /app/node_modules    

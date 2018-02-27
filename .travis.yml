@@ -1,13 +1,37 @@
+sudo: required
+dist: trusty
 language: node_js
 node_js:
-- '6.10.1'
-before_install:
-- yarn install
-- yarn global add typescript@2.2.1
-- PATH=${PATH//:\.\/node_modules\/\.bin/}
-script:
-- yarn run build
-services:
-- mongodb 
+  - "8.4.0"
+env:
+  - DOCKER_COMPOSE_VERSION=1.17.1
+
 cache:
   yarn: true
+  directories:
+    - ./node_modules
+
+before_install:
+  # Yarn
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.0.1
+  - export PATH=$HOME/.yarn/bin:$PATH
+  # Docker
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y install docker-ce
+  # Docker Compose
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+install:
+  - cd $TRAVIS_BUILD_DIR
+  - yarn install
+  - docker-compose up --build -d
+
+script:
+  - docker-compose exec server yarn build
+  - docker-compose exec server yarn lint
+  - docker-compose exec server yarn test
