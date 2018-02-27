@@ -26,8 +26,6 @@ const minimizeCssOptions = {
 // client-side (client.js) and server-side (server.js) bundles
 // -----------------------------------------------------------------------------
 
-console.log(path.resolve(__dirname, '../node_modules/react-icons'));
-
 const config: any = {
   context: path.resolve(__dirname, '..'),
 
