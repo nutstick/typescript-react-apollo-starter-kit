@@ -2,9 +2,6 @@
 // import 'file?name=[name].[ext]!./.htaccess';
 // Load the favicon, the manifest.json file and the .htaccess file
 // import 'file?name=[name].[ext]!./favicon.ico';
-// Import all the third party stuff
-import 'whatwg-fetch';
-
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpLink } from 'apollo-link-http';
 import { createPath } from 'history/PathUtils';
@@ -20,7 +17,6 @@ import { Router } from 'react-router-dom';
 import { createApolloClient } from './apollo';
 import { getIntlContext } from './apollo/intl';
 import App from './components/App';
-import { ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
 
@@ -159,6 +155,7 @@ onLocationChange(currentLocation);
 // Display the error in full-screen for development mode
 if (__DEV__) {
   window.addEventListener('error', (event) => {
+    const { ErrorReporter } = require('./core/devUtils');
     appInstance = null;
     document.title = `Runtime Error: ${(event as any).error.message}`;
     ReactDOM.render(<ErrorReporter error={(event as any).error} />, document.getElementById('app'));
