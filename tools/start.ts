@@ -187,14 +187,13 @@ async function start() {
           updatedModules.forEach((moduleId) =>
             console.info(`${hmrPrefix} - ${moduleId}`),
           );
-          delete require.cache[require.resolve('../dist/server')];
-          app = require('../dist/server').default;
           checkForUpdate(true);
         }
       })
       .catch((error) => {
         if (['abort', 'fail'].includes(app.hot.status())) {
           console.warn(`${hmrPrefix}Cannot apply update.`);
+          app.wsServer.close();
           delete require.cache[require.resolve('../dist/server')];
           app = require('../dist/server').default;
           console.warn(`${hmrPrefix}App has been reloaded.`);
@@ -218,7 +217,7 @@ async function start() {
   // Wait until both client-side and server-side bundles are ready
   await clientPromise;
   await serverPromise;
-  
+
   process.env.MESSAGES_DIR = path.join(__dirname, '../src/messages/');
 
   const timeStart = new Date();

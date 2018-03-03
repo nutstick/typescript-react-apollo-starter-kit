@@ -7,6 +7,7 @@ import * as express from 'express';
 import * as expressJwt from 'express-jwt';
 import { UnauthorizedError as Jwt401Error } from 'express-jwt';
 import * as requestLanguage from 'express-request-language';
+import { createServer } from 'http';
 import * as jwt from 'jsonwebtoken';
 import * as path from 'path';
 import * as PrettyError from 'pretty-error';
@@ -21,7 +22,8 @@ import * as LOCALEQUERY from './apollo/intl/LocaleQuery.gql';
 import * as assets from './assets.json';
 import App from './components/App';
 import { Html } from './components/Html';
-import { api, auth, locales, port } from './config';
+import { api, auth, locales, port, wsport } from './config';
+import { createSubscriptionServer } from './core/createSubscriptionsServer';
 import passport from './core/passport';
 import { ServerLink } from './core/ServerLink';
 import Routes from './routes';
@@ -308,11 +310,11 @@ app.use((err, req, res, next) => {
 // tslint:disable-next-line:no-console
 const promise = database.connect().catch((err) => console.error(err.stack));
 if (!module.hot) {
-  promise.then(() => {
-    app.listen(port, () => {
-      // tslint:disable-next-line:no-console
-      console.info(`The server is running at http://localhost:${port}/`);
-    });
+  const server = createServer(app);
+  createSubscriptionServer({ server });
+  server.listen(port, () => { // on production it will be working under the same port as main app
+    // tslint:disable-next-line:no-console
+    console.info(`The server is running at http://localhost:${port}/`);
   });
 }
 
@@ -321,8 +323,15 @@ if (!module.hot) {
 // -----------------------------------------------------------------------------
 if (module.hot) {
   app.hot = module.hot;
+  const server = createServer();
+  createSubscriptionServer({ server });
+  server.listen(wsport, () => {
+    // tslint:disable-next-line:no-console
+    console.info(`The subscription server is running at http://localhost:${wsport}`);
+  });
+
+  app.wsServer = server;
   module.hot.accept('./routes');
-  // module.hot.accept();
 }
 
 export default app;

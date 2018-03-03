@@ -25,7 +25,7 @@ export const locales = [
 
 export const port = process.env.PORT || 3000;
 
-export const wsport = process.env.WSPORT || 4040;
+export const wsport = process.env.WSPORT || 3000;
 
 export const mongodb = {
   host: process.env.MONGO_HOST || `localhost`,
