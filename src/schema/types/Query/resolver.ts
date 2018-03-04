@@ -13,7 +13,7 @@ const readFile = BluebirdPromise.promisify(fs.readFile);
 const resolver: IResolver<any, any> = {
   Query: {
     helloworld() {
-      return 'Hello World';
+      return 'Hello World222';
     },
     async me(_, __, { database, user }) {
       if (user && user._id) {

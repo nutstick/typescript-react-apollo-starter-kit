@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as globPkg from 'glob';
 import * as mkdirp from 'mkdirp';
 import * as path from 'path';
+import * as replaceStream from 'replacestream';
 import * as rimraf from 'rimraf';
 
 export const readFile = (file) => new Promise<string>((resolve, reject) => {
@@ -45,6 +46,29 @@ export const copyFile = (source, target) => new Promise<string>((resolve, reject
   wr.on('error', (err) => done(err));
   wr.on('close', (err) => done(err));
   rd.pipe(wr);
+});
+
+export const copyFileAndReplace = (source, target, search, replace) => new Promise<string>((resolve, reject) => {
+  let cbCalled = false;
+  function done(err) {
+    if (!cbCalled) {
+      cbCalled = true;
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    }
+  }
+
+  const rd = fs.createReadStream(source);
+  rd.on('error', (err) => done(err));
+  const wr = fs.createWriteStream(target);
+  wr.on('error', (err) => done(err));
+  wr.on('close', (err) => done(err));
+  rd
+    .pipe(replaceStream(search, replace))
+    .pipe(wr);
 });
 
 export const readDir = (pattern, options) => new Promise<string[]>((resolve, reject) =>

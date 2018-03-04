@@ -148,6 +148,7 @@
     "raw-loader": "^0.5.1",
     "react-dev-utils": "^4.2.0",
     "react-hot-loader": "^3.1.1",
+    "replacestream": "^4.0.3",
     "rimraf": "^2.6.2",
     "sass-loader": "^6.0.6",
     "string-replace-loader": "^1.3.0",
@@ -179,7 +180,8 @@
     "messages": "./node_modules/.bin/ts-node tools/run messages",
     "copy": "./node_modules/.bin/ts-node tools/run copy",
     "clean": "./node_modules/.bin/ts-node tools/run clean",
-    "lint": "./node_modules/.bin/tslint --project tsconfig.json 'src/**/*.ts?(x)'"
+    "lint": "./node_modules/.bin/tslint --project tsconfig.json 'src/**/*.ts?(x)'",
+    "mcreate": "./node_modules/.bin/ts-node tools/run create"
   },
   "jest": {
     "scriptPreprocessor": "<rootDir>/tools/jest.preprocessor.js",
