@@ -4,45 +4,46 @@ import { copyFileAndReplace, makeDir, readDir } from './lib/fs';
 import { format } from './run';
 
 function create() {
-  const command = process.argv[3];
+  let command = process.argv[3];
+  command = command[0].toUpperCase() + command.substr(1);
 
-  if (command.toLowerCase() === 'page') {
-    // TODO: Fix wording
+  if (command === 'Page' || command === 'Component' || command === 'Type') {
     return new Promise<any>((resolve, reject) => {
       const prompts = readline.createInterface(process.stdin, process.stdout);
 
-      prompts.question('Name of page, you want to create? ', async (word) => {
-        const page = word[0].toUpperCase() + word.substr(1);
+      // TODO: Fix wording
+      prompts.question(`Name of ${command.toLowerCase()}, you want to create? `, async (word) => {
+        const name = word[0].toUpperCase() + word.substr(1);
 
-        const existPage = await readDir('*/', {
+        const exist = await readDir('*/', {
           cwd: 'src/routes',
           nosort: true,
           dot: false,
         });
-        if (existPage.includes(page + '/')) {
-          return reject(new Error(`Page '${page}' already exists.`));
+        if (exist.includes(name + '/')) {
+          return reject(new Error(`${command} '${name}' already exists.`));
         }
 
-        const source = 'tools/template/Page';
-        const target = `src/routes/${page}`;
+        const source = 'tools/template/${command}';
+        const target = `src/routes/${name}`;
         const dirs = await readDir('**/*.*', {
           cwd: source,
           nosort: true,
           dot: true,
         });
         const start = new Date();
-        console.log(`[${format(start)}] Create page '${page}'`);
+        console.log(`[${format(start)}] Create ${command.toLowerCase()} '${name}'`);
         // Copy and replace search string in each file
         await Promise.all(dirs.map(async (dir) => {
           const from = path.resolve(source, dir);
-          const to = path.resolve(target, dir).replace('_____', page);
+          const to = path.resolve(target, dir).replace('_____', name);
           await makeDir(path.dirname(to));
-          await copyFileAndReplace(from, to, '_____', page);
+          await copyFileAndReplace(from, to, '_____', name);
         }));
 
         const end = new Date();
         const time = end.getTime() - start.getTime();
-        console.log(`[${format(end)}] Finished create page '${page}' after ${time} ms`);
+        console.log(`[${format(end)}] Finished create ${command.toLowerCase()} '${name}' after ${time} ms`);
 
         prompts.close();
         return resolve();
