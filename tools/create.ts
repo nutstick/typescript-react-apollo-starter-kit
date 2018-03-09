@@ -3,6 +3,12 @@ import * as readline from 'readline';
 import { copyFileAndReplace, makeDir, readDir } from './lib/fs';
 import { format } from './run';
 
+const paths = {
+  Page: 'src/routes/',
+  Component: 'src/components/',
+  Type: 'src/schema/types/',
+};
+
 function create() {
   let command = process.argv[3];
   command = command[0].toUpperCase() + command.substr(1);
@@ -24,8 +30,8 @@ function create() {
           return reject(new Error(`${command} '${name}' already exists.`));
         }
 
-        const source = 'tools/template/${command}';
-        const target = `src/routes/${name}`;
+        const source = `tools/template/${command}`;
+        const target = `${paths[command]}${name}`;
         const dirs = await readDir('**/*.*', {
           cwd: source,
           nosort: true,

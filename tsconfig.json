@@ -14,5 +14,8 @@
     "outDir": "dist",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
-  }
+  },
+  "exclude": [
+    "tools/**/*.ts"
+  ]
 }
