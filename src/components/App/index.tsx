@@ -30,7 +30,7 @@ class App extends React.Component<App.Props> {
   context: App.Context;
   unsubscribe: () => void;
   intl: {
-    initialNow?: string,
+    initialNow?: number,
     locale?: string,
     messages?: string,
   };
@@ -38,6 +38,7 @@ class App extends React.Component<App.Props> {
   constructor(props) {
     super(props);
 
+    this.intl = {};
     this.state = {
       intl: props.context.intl,
     };
@@ -61,6 +62,7 @@ class App extends React.Component<App.Props> {
   }
 
   public componentDidMount() {
+    const scope = this;
     const s = this.setState.bind(this);
     const { client } = this.props.context;
 
@@ -69,6 +71,17 @@ class App extends React.Component<App.Props> {
     }).subscribe({
       next({ data }) {
         const { locale, initialNow } = data;
+
+        console.log(scope.intl.locale)
+        if (locale === scope.intl.locale) {
+          return;
+        }
+
+        // Assign new intl config
+        scope.intl.locale = locale;
+        scope.intl.initialNow = initialNow;
+        console.log(scope.intl.locale)
+
         // TODO: fetchPolicy network-only to manage some way
         client.query<IntlQuery.Query>({
           query: IntlQuery,
@@ -76,6 +89,7 @@ class App extends React.Component<App.Props> {
           fetchPolicy: 'network-only',
         })
           .then(({ data: x }) => {
+            console.log(x)
             const messages = x.intl.reduce((msgs, msg) => {
               msgs[msg.id] = msg.message;
               return msgs;
