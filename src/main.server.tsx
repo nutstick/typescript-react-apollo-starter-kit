@@ -252,9 +252,9 @@ app.get('*', async (req, res, next) => {
     const children = await renderToStringWithData(component);
 
     const data: Html.IProps = {
-      title: 'Promize',
-      // TODO: description
-      description: 'Promize.',
+      title: 'Typescript React Apollo Starter Kit',
+      description: 'Typescript React Apollo Starter Kit - Universal web application apollo boilerplate' +
+        ' using React, React Apollo, React Router, Node.js, MongoDB',
       styles: [
         { id: 'css', cssText: [...css].join('') },
       ],
