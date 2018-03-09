@@ -40,6 +40,7 @@ const cache = new InMemoryCache({
   },
   // fragmentMatcher,
 }).restore(window.App.apollo);
+
 const client = createApolloClient({
   local,
   ssrForceFetchDelay: 100,

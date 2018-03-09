@@ -120,15 +120,17 @@ app.get('/logout', (req, res) => {
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
-app.use('/graphql', bodyParser.json(), graphqlExpress((req, res) => ({
-  schema: Schema,
-  context: {
-    database,
-    request: req,
-    response: res,
-  },
-  rootValue: { request: req },
-})));
+app.use('/graphql', bodyParser.json(), graphqlExpress((req, res) => {
+  return {
+    schema: Schema,
+    context: {
+      database,
+      request: req,
+      response: res,
+    },
+    rootValue: { request: req },
+  };
+}));
 
 app.get('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
