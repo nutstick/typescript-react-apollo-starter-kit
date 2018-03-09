@@ -72,7 +72,6 @@ class App extends React.Component<App.Props> {
       next({ data }) {
         const { locale, initialNow } = data;
 
-        console.log(scope.intl.locale)
         if (locale === scope.intl.locale) {
           return;
         }
@@ -80,7 +79,6 @@ class App extends React.Component<App.Props> {
         // Assign new intl config
         scope.intl.locale = locale;
         scope.intl.initialNow = initialNow;
-        console.log(scope.intl.locale)
 
         // TODO: fetchPolicy network-only to manage some way
         client.query<IntlQuery.Query>({
@@ -89,7 +87,6 @@ class App extends React.Component<App.Props> {
           fetchPolicy: 'network-only',
         })
           .then(({ data: x }) => {
-            console.log(x)
             const messages = x.intl.reduce((msgs, msg) => {
               msgs[msg.id] = msg.message;
               return msgs;
