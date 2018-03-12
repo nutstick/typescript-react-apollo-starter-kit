@@ -5,9 +5,10 @@ import * as TodosQuery from './TodosQuery.gql';
 import * as ToggleTodoMutation from './ToggleTodoMutation.gql';
 
 interface Todo {
-  id: number;
+  _id: number;
   text: string;
   done: boolean;
+  __typename: string;
 }
 
 let currentId = 1;
@@ -21,8 +22,8 @@ export const state = {
       const { text } = variables;
       const { todos } = cache.readQuery<TodosQuery.Query>({ query: TodosQuery });
 
-      const todo = {
-        id: currentId++,
+      const todo: Todo = {
+        _id: currentId++,
         text,
         done: false,
         __typename: 'Todo',
@@ -40,6 +41,8 @@ export const state = {
       const id = `Todo:${variables.id}`;
       const fragment = gql`
         fragment completeTodo on Todo {
+          _id
+          text
           done
         }
       `;

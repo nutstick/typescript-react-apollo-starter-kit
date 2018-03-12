@@ -1,6 +1,6 @@
 query todos {
   todos @client {
-    id
+    _id
     text
     done
   }

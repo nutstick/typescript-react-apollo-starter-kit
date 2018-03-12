@@ -6,7 +6,7 @@ export = _;
 declare namespace _ {
   export interface Query {
     todos: Array<{
-      id: number;
+      _id: number;
       text: string;
       done: boolean;
     }>;

@@ -5,7 +5,7 @@ export = _;
 
 declare namespace _ {
   export interface Payload {
-    id: number;
+    _id: number;
     text: string;
     done: boolean;
   }

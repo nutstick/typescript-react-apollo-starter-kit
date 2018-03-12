@@ -1,7 +1,7 @@
 mutation ToggleTodo($id:Int!) {
   toggleTodo(id: $id) @client {
-    id
-    message
+    _id
+    text
     done
   }
 }

@@ -1,6 +1,6 @@
 mutation AddTodo($text:String!) {
   addTodo(text: $text) @client {
-    id
+    _id
     text
     done
   }
