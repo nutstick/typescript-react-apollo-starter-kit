@@ -5,6 +5,7 @@ import { withClientState } from 'apollo-link-state';
 import { WebSocketLink } from 'apollo-link-ws';
 import { getOperationAST } from 'graphql';
 import { state as intl } from './intl';
+import { state as todo } from './todo';
 
 interface IOptions {
   local: ApolloLink;
@@ -16,12 +17,16 @@ interface IOptions {
 
 export const createApolloClient = ({ local, wsEndpoint, ...options }: IOptions) => {
   const state = withClientState({
-    Query: {
-      todos: () => [],
-      ...intl.Query,
+    cache: options.cache,
+    defaults: {
+      ...intl.defaults,
+      ...todo.defaults,
     },
-    Mutation: {
-      ...intl.Mutation,
+    resolvers: {
+      Mutation: {
+        ...intl.Mutation,
+        ...todo.Mutation,
+      },
     },
   });
 

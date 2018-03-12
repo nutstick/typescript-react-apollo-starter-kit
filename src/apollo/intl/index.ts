@@ -27,19 +27,11 @@ export function getIntlContext(cache: InMemoryCache) {
   return provider.getChildContext().intl;
 }
 
-export function setLocale(client: ApolloClient<any>) {
-  client.watchQuery<LocaleQuery.Query>({ query: LocaleQuery }).subscribe({
-    next: ({ data }) => {
-      const { locale } = data;
-      client.mutate({ mutation: SETLOCALEMUTATION, variables: { locale } });
-    },
-  });
-}
-
 export const state = {
-  Query: {
-    locale: () => 'en-US',
-    initialNow: () => Date.now(),
+  defaults: {
+    locale: 'en-US',
+    initialNow: Date.now(),
+    // availableLocales: [],
   },
   Mutation: {
     setLocale(result, variables, { cache }: { cache: InMemoryCache }) {
