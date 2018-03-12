@@ -1,7 +1,7 @@
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
 import { defineMessages, FormattedMessage } from 'react-intl';
-import { Link } from '../Link';
+import { Link } from 'react-router-dom';
 import * as s from './Navigation.css';
 
 const messages = defineMessages({
