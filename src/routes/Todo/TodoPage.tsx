@@ -46,12 +46,15 @@ export class TodoPage extends React.Component<TodoPage.Props, TodoPage.State> {
             {(addTodo) => {
               const onFormSubmit = (e) => {
                 e.preventDefault();
-                // Clear input value
-                setState({ addTodoData: '' });
-                // Procede add todo
+                // Empty input text > No update
+                if (addTodoData.length <= 0) {
+                  return;
+                }
+
+                // Procede add todo mutation to client state
                 addTodo({ variables: { text: addTodoData }});
-                // FIXME: Any way to better update component
-                forceUpdate();
+                // Clear input data state
+                setState({ addTodoData: '' });
               };
               return <ToggleTodoMutation mutation={ToggleTodoMutation.mutation}>
                 {(toggleTodo) => {
