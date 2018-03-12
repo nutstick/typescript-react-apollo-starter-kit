@@ -4,9 +4,9 @@ import * as React from 'react';
 import { AddTodoMutation } from '../../apollo/todo/AddTodoMutation';
 import { TodosQuery } from '../../apollo/todo/TodosQuery';
 import { ToggleTodoMutation } from '../../apollo/todo/ToggleTodoMutation';
-import * as s from './Todos.css';
+import * as s from './TodoPage.css';
 
-export namespace Todos {
+export namespace TodoPage {
   export type Props = any;
 
   export interface State {
@@ -15,7 +15,7 @@ export namespace Todos {
 }
 
 @withStyles(s)
-export class Todos extends React.Component<Todos.Props, Todos.State> {
+export class TodoPage extends React.Component<TodoPage.Props, TodoPage.State> {
   constructor(props) {
     super(props);
     this.state = {

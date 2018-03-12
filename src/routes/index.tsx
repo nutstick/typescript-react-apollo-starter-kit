@@ -3,13 +3,13 @@ import { Route, Switch } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Home } from '../routes/Home';
 import { NotFound } from '../routes/NotFound';
-import { Todos } from '../routes/Todos';
+import { TodoPage as Todo } from '../routes/Todo';
 
 export default (props) => (
   <Layout>
     <Switch>
       <Route exact path="/" component={Home} />
-      <Route exact path="/examples/todo" component={Todos} />
+      <Route exact path="/examples/todo" component={Todo} />
       <Route component={NotFound} />
     </Switch>
   </Layout>
