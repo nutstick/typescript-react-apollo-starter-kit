@@ -1,0 +1,7 @@
+query todos {
+  todos @client {
+    id
+    text
+    done
+  }
+}
