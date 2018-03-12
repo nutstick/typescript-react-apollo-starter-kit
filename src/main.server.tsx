@@ -153,11 +153,6 @@ const setLocale = async (client: ApolloClient<any>, { locale, initialNow }, { ca
 
   client.writeQuery({
     query: LOCALEQUERY,
-    variables: {
-      locale,
-      initialNow,
-      availableLocales: locales,
-    },
     data: {
       locale,
       initialNow,
