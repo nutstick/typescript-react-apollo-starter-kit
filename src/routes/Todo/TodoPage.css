@@ -16,11 +16,13 @@
     > .addTodo {
       width: 100%;
       > input {
-        // width: 100%;
-
-        // position: relative;
-        // padding: 16px 16px 16px 60px;
-        // margin: 0;
+        display: inline-block;
+        box-sizing: border-box;
+        width: 100%;
+        padding-top: 12px;
+        padding-right: 20px;
+        padding-bottom: 12px;
+        padding-left: 20px;
         background: rgba(0, 0, 0, 0.003);
         border: none;
         outline: none;
@@ -30,13 +32,6 @@
         font-weight: 100;
         line-height: 1.6em;
         color: inherit;
-        width: 100%;
-        display: inline-block;
-        box-sizing: border-box;
-        padding-left: 20px;
-        padding-right: 20px;
-        padding-top: 12px;
-        padding-bottom: 12px;
 
         &::placeholder {
           color: #ededed;
