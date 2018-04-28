@@ -304,8 +304,9 @@ app.use((err, req, res, next) => {
 //
 // Launch the server
 // -----------------------------------------------------------------------------
+// const promise =
 // tslint:disable-next-line:no-console
-const promise = database.connect().catch((err) => console.error(err.stack));
+database.connect().catch((err) => console.error(err.stack));
 if (!module.hot) {
   const server = createServer(app);
   createSubscriptionServer({ server });

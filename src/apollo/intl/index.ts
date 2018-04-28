@@ -1,9 +1,7 @@
 import { InMemoryCache } from 'apollo-cache-inmemory';
-import { ApolloClient } from 'apollo-client';
 import { IntlProvider } from 'react-intl';
 import * as IntlQuery from './IntlQuery.gql';
 import * as LocaleQuery from './LocaleQuery.gql';
-import * as SETLOCALEMUTATION from './SetLocaleMutation.gql';
 
 export function getIntlContext(cache: InMemoryCache) {
   const { locale, initialNow } = cache.readQuery<LocaleQuery.Query>({ query: LocaleQuery });

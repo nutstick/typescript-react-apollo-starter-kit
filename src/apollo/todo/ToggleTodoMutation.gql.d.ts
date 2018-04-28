@@ -7,6 +7,6 @@ declare namespace _ {
   export interface Payload {
     _id: number;
     text: string;
-    done: boolean
+    done: boolean;
   }
 }
