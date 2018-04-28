@@ -1,7 +1,7 @@
 import * as passport from 'passport';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { auth as config } from '../config';
-import { database } from '../schema/models';
+import { database } from '../schema';
 
 /**
  * Sign in with Facebook.

@@ -1,0 +1,7 @@
+mutation AddTodo($text:String!) {
+  addTodo(text: $text) @client {
+    _id
+    text
+    done
+  }
+}

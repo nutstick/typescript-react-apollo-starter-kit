@@ -1,54 +1,8 @@
 [
   {
-    "id": "sidebar.courselist.addcourse",
-    "description": "Add course",
-    "defaultMessage": "Add course",
-    "message": "",
-    "files": [
-      "src/components/CourseListPanel/CourseListPanel.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.courselist.header",
-    "description": "List of courses in coursetable",
-    "defaultMessage": "Courses",
-    "message": "",
-    "files": [
-      "src/components/CourseListPanel/CourseListPanel.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.courselist.nocourse",
-    "description": "No course found in coursetable",
-    "defaultMessage": "No Course found.",
-    "message": "",
-    "files": [
-      "src/components/CourseListPanel/CourseListPanel.tsx",
-      "src/components/NoCourse/NoCourse.tsx"
-    ]
-  },
-  {
-    "id": "header.banner.desc",
-    "description": "Description in header",
-    "defaultMessage": "Complex web apps made easy",
-    "message": "",
-    "files": [
-      "src/components/Header/Header.tsx"
-    ]
-  },
-  {
-    "id": "header.banner.title",
-    "description": "Title in page header",
-    "defaultMessage": "React",
-    "message": "",
-    "files": [
-      "src/components/Header/Header.tsx"
-    ]
-  },
-  {
     "id": "header.brand",
     "description": "Brand name displayed in header",
-    "defaultMessage": "Your Company Brand",
+    "defaultMessage": "Typescript React Starter Kit",
     "message": "",
     "files": [
       "src/components/Header/Header.tsx"
@@ -64,167 +18,21 @@
     ]
   },
   {
-    "id": "navigation.contact",
-    "description": "Contact link in header",
-    "defaultMessage": "Contact",
+    "id": "navigation.examples",
+    "description": "Examples link in header",
+    "defaultMessage": "Examples",
     "message": "",
     "files": [
       "src/components/Navigation/Navigation.tsx"
     ]
   },
   {
-    "id": "navigation.login",
-    "description": "Log in link in header",
-    "defaultMessage": "Log in",
+    "id": "navigation.getstarted",
+    "description": "Get Started link in header",
+    "defaultMessage": "Get Started",
     "message": "",
     "files": [
       "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "navigation.separator.or",
-    "description": "Last separator in list, lowercase \"or\"",
-    "defaultMessage": "or",
-    "message": "",
-    "files": [
-      "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "navigation.signup",
-    "description": "Sign up link in header",
-    "defaultMessage": "Sign up",
-    "message": "",
-    "files": [
-      "src/components/Navigation/Navigation.tsx"
-    ]
-  },
-  {
-    "id": "searchcourse.header",
-    "description": "Search course",
-    "defaultMessage": "Search course",
-    "message": "",
-    "files": [
-      "src/components/SearchCoursePanel/SearchCourse.tsx"
-    ]
-  },
-  {
-    "id": "searchcourse.input",
-    "description": "Type search text to search field",
-    "defaultMessage": "Type to search",
-    "message": "",
-    "files": [
-      "src/components/SearchCoursePanel/SearchCourse.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.menu.courses",
-    "description": "My Courses Menu",
-    "defaultMessage": "My Courses",
-    "message": "",
-    "files": [
-      "src/components/SidebarMenu/SidebarMenu.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.menu.coursetables",
-    "description": "My Course tables menu",
-    "defaultMessage": "Course Tables",
-    "message": "",
-    "files": [
-      "src/components/SidebarMenu/SidebarMenu.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.courselist.or",
-    "description": "Or word",
-    "defaultMessage": "or",
-    "message": "",
-    "files": [
-      "src/components/CourseListPanel/CourseListPanel.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.courselist.nocourse.addcoursenoresult",
-    "description": "Add courses in coursetable",
-    "defaultMessage": "Add some?",
-    "message": "",
-    "files": [
-      "src/components/NoCourse/NoCourse.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.courselist.nocourse.or",
-    "description": "Or",
-    "defaultMessage": "or",
-    "message": "",
-    "files": [
-      "src/components/NoCourse/NoCourse.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.courselist.nocourse.loading",
-    "description": "Loading",
-    "defaultMessage": "loading",
-    "message": "",
-    "files": [
-      "src/components/NoCourse/NoCourse.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.courselist.nocourse.suggest",
-    "description": "Suggest course group",
-    "defaultMessage": "Suggest course group",
-    "message": "",
-    "files": [
-      "src/components/NoCourse/NoCourse.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.coursegroup.addcourse",
-    "description": "Add course",
-    "defaultMessage": "Add course",
-    "message": "",
-    "files": [
-      "src/components/CourseGroupPanel/CourseGroupPanel.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.coursegroup.helper",
-    "description": "Select Course's Section",
-    "defaultMessage": "Select sections.",
-    "message": "",
-    "files": [
-      "src/components/CourseGroupPanel/CourseGroupPanel.tsx"
-    ]
-  },
-  {
-    "id": "home.header",
-    "description": "News feeds",
-    "defaultMessage": "News feed",
-    "message": "",
-    "files": [
-      "src/routes/CourseTables/CourseTablesPage.tsx",
-      "src/routes/NewsFeed/NewsFeed.tsx"
-    ]
-  },
-  {
-    "id": "home.unname",
-    "description": "No Coursetable Name",
-    "defaultMessage": "No name",
-    "message": "",
-    "files": [
-      "src/routes/CourseTables/CourseTablesPage.tsx",
-      "src/routes/NewsFeed/NewsFeed.tsx"
-    ]
-  },
-  {
-    "id": "sidebar.menu.newsfeed",
-    "description": "New feeds",
-    "defaultMessage": "Feed",
-    "message": "",
-    "files": [
-      "src/components/SidebarMenu/SidebarMenu.tsx"
     ]
   }
 ]

@@ -1,21 +1,19 @@
-import * as cx from 'classnames';
+import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { Route } from 'react-router-dom';
-import NewsFeed from '../NewsFeed';
+import { HelloWorldQuery } from '../../apollo/helloworld/HelloWorldQuery';
+import * as s from './Home.css';
 
-interface IHome extends React.Props<any> {
-  user: string;
+export namespace Home {
+  export type Props = any;
 }
 
-class Home extends React.Component<IHome> {
+@withStyles(s)
+export class Home extends React.Component<Home.Props> {
   public render() {
-    return (<Route exact path="/" component={NewsFeed} />);
+    return <HelloWorldQuery query={HelloWorldQuery.query}>
+      {({ loading, error, data }) => {
+        return loading ? 'Loading' : data.helloworld;
+      }}
+    </HelloWorldQuery>;
   }
 }
-
-const mapStateToProps = (state, ownProps) => ({
-  user: state.user,
-});
-
-export default connect(mapStateToProps)(Home);

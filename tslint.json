@@ -1,12 +1,14 @@
 {
   "extends": "tslint:recommended",
   "rules": {
-    "no-console": [ false ],
+    "no-console": [true, "log", "error", "info"],
     "object-literal-sort-keys": false,
     "quotemark": [ true, "single", "jsx-double" ],
     "variable-name": false,
     "member-access": false,
     "member-ordering": [false],
-    "no-namespace": [false]
+    "no-namespace": [false],
+    "interface-name": false,
+    "no-unused-variable": true
   }
 }

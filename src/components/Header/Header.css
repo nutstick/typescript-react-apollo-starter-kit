@@ -1,50 +1,71 @@
 @import '../variables.css';
 
 :root {
-  --brand-color: #61dafb;
+  --brand-color: #366977;
+  --background-image: linear-gradient(45deg, rgba(95, 212, 224, 0.5), rgba(35, 0, 173, 0.5));
 }
 
 .root {
-  background: #373277;
+  display: flex;
+  padding: 1em 0;
+  background: var(--brand-color);
+  background-image: var(--background-image);
   color: #fff;
-}
 
-.container {
-  margin: 0 auto;
-  padding: 20px 0;
-  max-width: var(--max-content-width);
-}
+  > .title {
+    display: flex;
+    color: #fff;
+    text-decoration: none;
 
-.brand {
-  color: color(var(--brand-color) lightness(+10%));
-  text-decoration: none;
-  font-size: 1.75em; /* ~28px */
-}
+    > .logo {
+      width: 4em;
+      height: 4em;
+      margin: -13px 0 -15px;
+    }
 
-.brandTxt {
-  margin-left: 10px;
-}
+    > .brandTxt {
+      line-height: 36px;
+      font-size: 1.4em;
+    }
+  }
 
-.nav {
-  float: right;
-  margin-top: 6px;
-}
+  > .navigation {
+    flex: 1;
+    text-align: right;
+    padding-right: 1em;
+  }
 
-.banner {
-  text-align: center;
-}
+  &.home {
+    flex-direction: column;
+    padding-bottom: 2em;
 
-.bannerTitle {
-  margin: 0;
-  padding: 10px;
-  font-weight: normal;
-  font-size: 4em;
-  line-height: 1em;
-}
+    > .topnav {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 1.5em;
+    }
 
-.bannerDesc {
-  padding: 0;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 1.25em;
-  margin: 0;
+    > .navigation {
+      margin-top: 1.5em;
+      text-align: center;
+      padding-right: 0;
+    }
+
+    > .title {
+      flex-direction: column;
+      text-align: center;
+
+      > .logo {
+        width: 10rem;
+        height: 10rem;
+        margin: 0 auto;
+      }
+      > .brandTxt {
+        margin: 0;
+        font-size: 2.25rem;
+        color: #fff;
+        font-weight: bold;
+      }
+    }
+  }
 }

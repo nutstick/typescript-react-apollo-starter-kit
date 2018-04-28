@@ -1,53 +1,58 @@
-// Needed for redux-saga es6 generator support
 // import '!file?name=[name].[ext]!./manifest.json';
 // import 'file?name=[name].[ext]!./.htaccess';
 // Load the favicon, the manifest.json file and the .htaccess file
 // import 'file?name=[name].[ext]!./favicon.ico';
-// Import all the third party stuff
-import { createNetworkInterface } from 'apollo-client';
-import * as FastClick from 'fastclick';
-import * as FontFaceObserver from 'fontfaceobserver';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { HttpLink } from 'apollo-link-http';
 import { createPath } from 'history/PathUtils';
 import * as React from 'react';
-import { ApolloProvider } from 'react-apollo';
 import * as ReactDOM from 'react-dom';
 import { addLocaleData } from 'react-intl';
-import cs from 'react-intl/locale-data/cs';
-import en from 'react-intl/locale-data/en';
-import { BrowserRouter } from 'react-router-dom';
-import { ConnectedRouter } from 'react-router-redux';
+/* @intl-code-template import ${lang} from 'react-intl/locale-data/${lang}'; */
+import * as cs from 'react-intl/locale-data/cs';
+import * as en from 'react-intl/locale-data/en';
+import * as th from 'react-intl/locale-data/th';
+/* @intl-code-template-end */
+import { Router } from 'react-router-dom';
+import { createApolloClient } from './apollo';
+import { getIntlContext } from './apollo/intl';
 import App from './components/App';
-import createApolloClient from './core/createApolloClient';
-import { deepForceUpdate, ErrorReporter } from './core/devUtils';
 import { updateMeta } from './core/DOMUtils';
 import history from './core/history';
-import { configureStore } from './redux/configureStore';
-import Routes from './routes';
-const apolloClient = createApolloClient({
-  networkInterface: createNetworkInterface({
-    uri: '/graphql',
-    opts: {
-      // Additional fetch options like `credentials` or `headers`
-      credentials: 'include',
-    },
-  }),
+
+/*
+  Apollo Client v2
+*/
+const local = new HttpLink({
+  uri: window.App.apiUrl,
+  credentials: 'include',
+});
+
+const cache = new InMemoryCache({
+  dataIdFromObject(value: any) {
+    if (value.__typename.match(/(Page|Edges)/)) {
+      return null;
+    } else if (value._id) {
+      return `${value.__typename}:${value._id}`;
+    } else if (value.node) {
+      return `${value.__typename}:${value.node._id}`;
+    }
+  },
+  // fragmentMatcher,
+}).restore(window.App.apollo);
+
+const client = createApolloClient({
+  local,
   ssrForceFetchDelay: 100,
+  cache,
+  wsEndpoint: window.App.wsUrl,
 });
 
-[en, cs].forEach(addLocaleData);
-
-const openSansObserver = new FontFaceObserver('Open Sans', {});
-
-openSansObserver.load().then(() => {
-  document.body.classList.add('font-loaded');
-}, () => {
-  document.body.classList.remove('font-loaded');
-});
-
-const store = configureStore(window.__INITIAL_STATE__, {
-  history,
-  apolloClient,
-});
+/* @intl-code-template addLocaleData(${lang}); */
+addLocaleData(en);
+addLocaleData(cs);
+addLocaleData(th);
+/* @intl-code-template-end */
 
 const context = {
   // Enables critical path CSS rendering
@@ -58,10 +63,9 @@ const context = {
     return () => { removeCss.forEach((f) => f()); };
   },
   // For react-apollo
-  client: apolloClient,
-  // Initialize a new Redux store
-  // http://redux.js.org/docs/basics/UsageWithReact.html
-  store,
+  client,
+  // intl instance as it can be get with injectIntl
+  intl: getIntlContext(cache),
 };
 
 // Switch off the native scroll restoration behavior and handle it manually
@@ -77,8 +81,6 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
     elem.parentNode.removeChild(elem);
   }
   onRenderComplete = function renderComplete(route_, location_) {
-    document.title = route_.title;
-
     updateMeta('description', route_.description);
     // Update necessary tags in <head> at runtime here, ie:
     // updateMeta('keywords', route.keywords);
@@ -116,14 +118,13 @@ let onRenderComplete = function initialRenderComplete(route?, location?) {
   };
 };
 
-// Make taps on links and buttons work fast on mobiles
-(FastClick as any).attach(document.body);
-
+const container = document.getElementById('app');
 let appInstance;
 let currentLocation = history.location;
 
 // Re-render the app when window.location changes
 async function onLocationChange(location?, action?) {
+  const Routes = require('./routes').default;
   // Remember the latest scroll position for the previous location
   scrollPositionsHistory[currentLocation.key] = {
     scrollX: window.pageXOffset,
@@ -135,18 +136,14 @@ async function onLocationChange(location?, action?) {
     delete scrollPositionsHistory[location.key];
   }
   currentLocation = location;
-
-  ReactDOM.render(
+  appInstance = ReactDOM.hydrate(
     <App context={context}>
-      <BrowserRouter>
-        <ConnectedRouter history={history}>
-          <Routes />
-        </ConnectedRouter>
-      </BrowserRouter>
+      <Router history={history}>
+        <Routes />
+      </Router>
     </App>,
-    document.getElementById('app'),
-    // TODO
-    () => onRenderComplete({ title: 'Coursetable' }, location),
+    container,
+    () => onRenderComplete(Routes, location),
   );
 }
 
@@ -159,26 +156,34 @@ onLocationChange(currentLocation);
 // Display the error in full-screen for development mode
 if (__DEV__) {
   window.addEventListener('error', (event) => {
+    const { ErrorReporter } = require('./core/devUtils');
     appInstance = null;
     document.title = `Runtime Error: ${(event as any).error.message}`;
     ReactDOM.render(<ErrorReporter error={(event as any).error} />, document.getElementById('app'));
   });
 }
 
+let isHistoryObserved = false;
+export default function main() {
+  // Handle client-side navigation by using HTML5 History API
+  // For more information visit https://github.com/mjackson/history#readme
+  currentLocation = history.location;
+  if (!isHistoryObserved) {
+    isHistoryObserved = true;
+    history.listen(onLocationChange);
+  }
+  onLocationChange(currentLocation);
+}
+
+// globally accesible entry point
+window.RSK_ENTRY = main;
+
 // Enable Hot Module Replacement (HMR)
 if (module.hot) {
-  module.hot.accept('./routes', async () => {
-    currentLocation = history.location;
-    await onLocationChange(currentLocation);
+  module.hot.accept('./routes', () => {
     if (appInstance) {
-      try {
-        // Force-update the whole tree, including components that refuse to update
-        deepForceUpdate(appInstance);
-      } catch (error) {
-        appInstance = null;
-        document.title = `Hot Update Error: ${error.message}`;
-        ReactDOM.render(<ErrorReporter error={error} />, document.getElementById('app'));
-      }
+      // Force-update the whole tree, including components that refuse to update
+      onLocationChange(currentLocation);
     }
   });
 }

@@ -1,32 +1,32 @@
+/// <reference types="react" />
 /**
  * Type declerations for global development variables
  */
+
+// import { ComponentClass, StatelessComponent } from 'react';
 
 declare var global: any;
 
 declare var __DEV__: boolean;
 
-// tslint:disable-next-line
-interface Window {
+declare interface Window {
   // A hack for the Redux DevTools Chrome extension.
-  __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: <F extends Function>(f: F) => F;
   __INITIAL_STATE__?: any;
   __APOLLO_STATE__?: any;
   devToolsExtension?: any;
   Intl?: any;
   ga: any;
+  RSK_ENTRY: any;
+  App: {
+    apiUrl: string,
+    wsUrl: string,
+    apollo: any,
+    lang: string,
+  };
 }
 
-// tslint:disable-next-line
 interface NodeModule {
   hot?: any;
-}
-
-declare function _import<T>(path: string): Promise<T>;
-
-declare module 'react-router-scroll' {
-  const _: any;
-  export = _;
 }
 
 declare module 'write-file-webpack-plugin' {
@@ -39,22 +39,15 @@ declare module 'gaze' {
   export = _;
 }
 
-// tslint:disable-next-line
-interface ObjectConstructor {
-  assign(target: any, ...sources: any[]): any;
-}
-
-declare module '*.graphql' {
+declare module 'gaze' {
   const _: any;
   export = _;
-  // export default  _;
 }
 
-declare module '*.gql' {
-  const _: DocumentNode;
-  export = _;
-  // export default  _;
-}
+// declare module '*.gql' {
+//   const _: DocumentNode;
+//   export = _;
+// }
 
 declare module '*.json' {
   const _: any;
@@ -81,10 +74,16 @@ declare module '*.png' {
   export = _;
 }
 
+declare module '*.svg' {
+  const _: any;
+  export = _;
+}
+
 declare module 'isomorphic-style-loader/lib/withStyles' {
-  type ConstructClass<P> = ComponentClass<P> | StatelessComponent<P>;
-  export interface WrapWithStyles {
-    <P>(component: ConstructClass<P>): ConstructClass<P>;
-  }
-  export default function withStyles(styles?: Object): WrapWithStyles;
+  export declare type CompositeComponent<P> = React.ComponentClass<P> | React.StatelessComponent<P>;
+  // export interface ComponentDecorator<TOwnProps> {
+  //   (component: CompositeComponent<TOwnProps>): ComponentClass<TOwnProps>;
+  // }
+  export type ComponentDecorator<TOwnProps> = (component: CompositeComponent<TOwnProps>) => ComponentClass<TOwnProps>;
+  export default function withStyles<TProps = {}>(styles?: any): ComponentDecorator<TProps>;
 }

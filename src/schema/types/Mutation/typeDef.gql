@@ -1,3 +1,14 @@
+input RegisterInput {
+  name: String!
+  avatar: String
+  email: String!
+  password: String!
+}
+
 # Mutations
 type Mutation {
+  # Login
+  login(email: String!, password: String!): User
+  # Register
+  register(input: RegisterInput!): User
 }

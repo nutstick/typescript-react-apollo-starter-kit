@@ -1,50 +1,65 @@
+import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { setLocale } from '../../redux/intl/actions';
+import { LocaleQuery } from '../../apollo/intl/LocaleQuery';
+import { SetLocaleMutation } from '../../apollo/intl/SetLocaleMutation';
+import * as s from './LanguageSwitcher.css';
 
-interface ILanguageSwitcherProps extends React.Props<any> {
-  currentLocale: string;
-  availableLocales: string[];
-  setLocale(state: any): Promise<boolean>;
+namespace LanguageSwitcher {
+  // tslint:disable-next-line:interface-over-type-literal
+  export type Props = {};
 }
 
-const LanguageSwitcher: React.StatelessComponent<ILanguageSwitcherProps>
-  = ({ currentLocale, availableLocales, setLocale }) => {
-  const isSelected = (locale) => locale === currentLocale;
-  const localeDict = {
-    'en-US': 'English',
-    'cs-CZ': 'Česky',
-  };
-  const localeName = (locale) => localeDict[locale] || locale;
-  return (
-    <div>
-      {availableLocales.map((locale) => (
-        <span key={locale}>
-          {isSelected(locale) ? (
-            <span>{localeName(locale)}</span>
-          ) : (
-            <a
-              href={`?lang=${locale}`}
-              onClick={(e) => {
-                setLocale({ locale });
-                e.preventDefault();
-              }}
-            >{localeName(locale)}</a>
-          )}
-          {' '}
-        </span>
-      ))}
-    </div>
-  );
-};
+@withStyles(s)
+export class LanguageSwitcher extends React.Component<LanguageSwitcher.Props> {
+  public render() {
+    return (
+      <LocaleQuery query={LocaleQuery.query}>
+        {({ loading, error, data }) => {
+          if (loading) { return 'loading'; }
+          if (error) { return 'error'; }
 
-const mapState = (state) => ({
-  availableLocales: state.runtime.availableLocales,
-  currentLocale: state.intl.locale,
-});
+          if (data) {
+            const { locale, availableLocales } = data;
+            const localeDict = {
+              /* @intl-code-template '${lang}-${COUNTRY}': '${Name}', */
+              'en-US': 'English',
+              'th-TH': 'ไทย',
+              'cs-CZ': 'Česky',
+              /* @intl-code-template-end */
+            };
+            const localeName = (locale_) => localeDict[locale_] || locale_;
 
-const mapDispatch = {
-  setLocale,
-};
+            const isSelected = (locale_) => locale_ === locale;
 
-export default connect(mapState, mapDispatch)(LanguageSwitcher);
+            return (
+              <SetLocaleMutation mutation={SetLocaleMutation.mutation}>
+                {(mutate) => {
+                  return <div>
+                    {availableLocales.map((locale_) =>
+                      <span key={locale_}>
+                        {isSelected(locale_)
+                          ? <span className={s.selected}>
+                              {localeName(locale_)}
+                            </span>
+                          : <a
+                              className={s.link}
+                              href={`?lang=${locale_}`}
+                              onClick={(e) => {
+                                mutate({ variables: { locale: locale_ } });
+                                e.preventDefault();
+                              }}
+                            >
+                              {localeName(locale_)}
+                            </a>}{' '}
+                      </span>,
+                    )}
+                  </div>;
+                }}
+              </SetLocaleMutation>
+            );
+          }
+        }}
+      </LocaleQuery>
+    );
+  }
+}

@@ -1,64 +1,108 @@
+import { ApolloClient } from 'apollo-client';
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
-import * as deepForceUpdate from 'react-deep-force-update';
+import { ApolloProvider } from 'react-apollo';
 import { IntlProvider } from 'react-intl';
+import * as IntlQuery from '../../apollo/intl/IntlQuery.gql';
+import * as LocaleQuery from '../../apollo/intl/LocaleQuery.gql';
 
-interface IContext {
-  insertCss: any;
-  store: {
-    subscribe: any;
-    dispatch: any;
-    getState: any;
-  };
-  client: any;
+namespace App {
+  export interface Context {
+    // TODO: define type
+    insertCss: any;
+    client: ApolloClient<any>;
+    intl: any;
+  }
+
+  interface IProps extends React.Props<any> {
+    context: Context;
+  }
+
+  export type Props = IProps;
+
+  export interface State {
+    // TODO: define type
+    intl: any;
+  }
 }
 
-interface IAppProps {
-  context: IContext;
-  children?: any;
-}
-
-class App extends React.Component<IAppProps, any> {
-  context: IContext;
+class App extends React.Component<App.Props> {
+  context: App.Context;
   unsubscribe: () => void;
   intl: {
-    initialNow?: string,
+    initialNow?: number,
     locale?: string,
     messages?: string,
   };
 
+  constructor(props) {
+    super(props);
+
+    this.intl = {};
+    this.state = {
+      intl: props.context.intl,
+    };
+  }
+
   static childContextTypes = {
+    // Enables critical path CSS rendering
+    // https://github.com/kriasoft/isomorphic-style-loader
     insertCss: PropTypes.func.isRequired,
-    // Integrate Redux
-    // http://redux.js.org/docs/basics/UsageWithReact.html
-    store: PropTypes.shape({
-      subscribe: PropTypes.func.isRequired,
-      dispatch: PropTypes.func.isRequired,
-      getState: PropTypes.func.isRequired,
-    }).isRequired,
     // Apollo Client
     client: PropTypes.object.isRequired,
+    // ReactIntl
+    intl: IntlProvider.childContextTypes.intl,
   };
 
   public getChildContext() {
-    return this.props.context;
+    return {
+      ...this.props.context,
+      ...this.state,
+    };
   }
 
   public componentDidMount() {
-    const store = this.props.context && this.props.context.store;
-    if (store) {
-      this.unsubscribe = store.subscribe(() => {
-        const state = store.getState();
-        const newIntl = state.intl;
-        if (this.intl !== newIntl) {
-          this.intl = newIntl;
-          if (__DEV__) {
-            console.log('Intl changed — Force rendering');
-          }
-          deepForceUpdate(this);
+    const scope = this;
+    const s = this.setState.bind(this);
+    const { client } = this.props.context;
+
+    this.unsubscribe = client.watchQuery<LocaleQuery.Query>({
+      query: LocaleQuery,
+    }).subscribe({
+      next({ data }) {
+        const { locale, initialNow } = data;
+
+        if (locale === scope.intl.locale) {
+          return;
         }
-      });
-    }
+
+        // Assign new intl config
+        scope.intl.locale = locale;
+        scope.intl.initialNow = initialNow;
+
+        // TODO: fetchPolicy network-only to manage some way
+        client.query<IntlQuery.Query>({
+          query: IntlQuery,
+          variables: { locale },
+          fetchPolicy: 'network-only',
+        })
+          .then(({ data: x }) => {
+            const messages = x.intl.reduce((msgs, msg) => {
+              msgs[msg.id] = msg.message;
+              return msgs;
+            }, {});
+
+            s({
+              intl: new IntlProvider({
+                initialNow,
+                locale,
+                messages,
+                defaultLocale: 'en-US',
+              }).getChildContext().intl,
+            });
+          });
+      },
+    }).unsubscribe;
   }
 
   public componentWillUnmount() {
@@ -68,22 +112,13 @@ class App extends React.Component<IAppProps, any> {
     }
   }
 
-  public render() {
-    const store = this.props.context && this.props.context.store;
-    const client = this.props.context && this.props.context.client;
-    const state = store && store.getState();
-    this.intl = (state && state.intl) || {};
-    const { initialNow, locale, messages } = this.intl;
-    const localeMessages = (messages && messages[locale]) || {};
+  render() {
+    const { client } = this.props.context;
+
     return (
-      <IntlProvider
-        initialNow={initialNow}
-        locale={locale}
-        messages={localeMessages}
-        defaultLocale="en-US"
-      >
-        {React.Children.only(this.props.children)}
-      </IntlProvider>
+      <ApolloProvider client={client}>
+        {this.props.children}
+      </ApolloProvider>
     );
   }
 }

@@ -1,3 +1,1 @@
-import AsyncComponents from '../../components/AsyncComponents';
-
-export default AsyncComponents(() => _import('./Home'));
+export { Home } from './Home';

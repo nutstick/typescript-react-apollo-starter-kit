@@ -1,4 +1,4 @@
-import { QueryProps as QP } from 'react-apollo';
+// import { QueryProps as QP } from 'react-apollo';
 
 // The red box (aka red screen of death) component to display your errors
 // https://github.com/commissure/redbox-react

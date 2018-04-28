@@ -1,6 +1,0 @@
-scalar Date
-
-schema {
-  query: Query
-  mutation: Mutation
-}

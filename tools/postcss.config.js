@@ -1,13 +1,21 @@
-module.exports = ({ file }) => ({
+/**
+ * React Starter Kit (https://www.reactstarterkit.com/)
+ *
+ * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE.txt file in the root directory of this source tree.
+ */
+
+/* eslint-disable global-require */
+
+module.exports = () => ({
   // The list of plugins for PostCSS
   // https://github.com/postcss/postcss
   plugins: [
     // Transfer @import rule by inlining content, e.g. @import 'normalize.css'
-    // https://github.com/jonathantneal/postcss-partial-import
-    require('postcss-import')({ root: file.dirname }),
-    // Allow you to fix url() according to postcss to and/or from options
-    // https://github.com/postcss/postcss-url
-    require('postcss-url')(),
+    // https://github.com/postcss/postcss-import
+    require('postcss-import')(),
     // W3C variables, e.g. :root { --color: red; } div { background: var(--color); }
     // https://github.com/postcss/postcss-custom-properties
     require('postcss-custom-properties')(),
@@ -50,11 +58,7 @@ module.exports = ({ file }) => ({
     // Add vendor prefixes to CSS rules using values from caniuse.com
     // https://github.com/postcss/autoprefixer
     require('autoprefixer')(/* package.json/browserslist */),
-    // Allows an author to store a set of properties in a named variable, then reference them in other style rules.
-    // https://github.com/pascalduez/postcss-apply
-    require('postcss-apply')(),
-    // Create stunning grids based on fractions you define without having to pass a lot of options.
-    // https://github.com/peterramsing/lost
+
     require('lost')(),
   ],
 });

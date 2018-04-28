@@ -8,13 +8,17 @@ function isModifiedEvent(event) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }
 
-interface ILinkProps extends React.Props<any> {
-  className?: string;
-  to: string;
-  onClick?(e: any): void;
+export namespace Link {
+  interface IProps extends React.Props<any> {
+    className?: string;
+    to: string;
+    onClick?(e: any): void;
+  }
+
+  export type Props = IProps;
 }
 
-export default class Link extends React.Component<ILinkProps> {
+export class Link extends React.Component<Link.Props> {
   static defaultProps = {
     onClick: null,
   };

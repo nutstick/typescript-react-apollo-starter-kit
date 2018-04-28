@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as globPkg from 'glob';
 import * as mkdirp from 'mkdirp';
 import * as path from 'path';
+import * as replaceStream from 'replacestream';
 import * as rimraf from 'rimraf';
 
 export const readFile = (file) => new Promise<string>((resolve, reject) => {
@@ -20,6 +21,11 @@ export const readFile = (file) => new Promise<string>((resolve, reject) => {
 export const writeFile = (file, contents) => new Promise<string>((resolve, reject) => {
   fs.writeFile(file, contents, { encoding: 'utf8' }, (err) => (err ? reject(err) : resolve()));
 });
+
+export const renameFile = (source, target) =>
+  new Promise((resolve, reject) => {
+    fs.rename(source, target, (err) => (err ? reject(err) : resolve()));
+  });
 
 export const copyFile = (source, target) => new Promise<string>((resolve, reject) => {
   let cbCalled = false;
@@ -42,6 +48,29 @@ export const copyFile = (source, target) => new Promise<string>((resolve, reject
   rd.pipe(wr);
 });
 
+export const copyFileAndReplace = (source, target, search, replace) => new Promise<string>((resolve, reject) => {
+  let cbCalled = false;
+  function done(err) {
+    if (!cbCalled) {
+      cbCalled = true;
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    }
+  }
+
+  const rd = fs.createReadStream(source);
+  rd.on('error', (err) => done(err));
+  const wr = fs.createWriteStream(target);
+  wr.on('error', (err) => done(err));
+  wr.on('close', (err) => done(err));
+  rd
+    .pipe(replaceStream(search, replace))
+    .pipe(wr);
+});
+
 export const readDir = (pattern, options) => new Promise<string[]>((resolve, reject) =>
   globPkg(pattern, options, (err, result) => (err ? reject(err) : resolve(result))),
 );
@@ -54,13 +83,29 @@ export const glob = (pattern) => new Promise<string[]>((resolve, reject) => {
   globPkg(pattern, (err, val) => (err ? reject(err) : resolve(val)));
 });
 
+export const moveDir = async (source, target) => {
+  const dirs = await readDir('**/*.*', {
+    cwd: source,
+    nosort: true,
+    dot: true,
+  });
+  await Promise.all(
+    dirs.map(async (dir) => {
+      const from = path.resolve(source, dir);
+      const to = path.resolve(target, dir);
+      await makeDir(path.dirname(to));
+      await renameFile(from, to);
+    }),
+  );
+};
+
 export const copyDir = async (source, target) => {
   const dirs = await readDir('**/*.*', {
     cwd: source,
     nosort: true,
     dot: true,
   });
-  await Promise.all(dirs.map(async dir => {
+  await Promise.all(dirs.map(async (dir) => {
     const from = path.resolve(source, dir);
     const to = path.resolve(target, dir);
     await makeDir(path.dirname(to));

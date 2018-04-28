@@ -3,7 +3,6 @@ type Query {
   helloworld: String
 
   me: User
-  search(search: String!): SearchResultPage
 
   intl(locale: String!): [IntlMessage]
 }
