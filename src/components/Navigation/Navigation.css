@@ -1,29 +1,87 @@
-.link {
-  box-sizing: border-box;
-  position: relative;
-  user-select: none;
-  cursor: pointer;
-  outline: 0;
-  border: none;
-  white-space: nowrap;
-  vertical-align: baseline;
-  text-decoration: none;
-  margin: 0;
-  line-height: 36px;
-  font-size: 1.25em;
-  font-weight: 300;
-  color: #fff;
-  opacity: .75;
+@import '../variables.css';
 
-  &:hover {
-    opacity: 1;
+:root {
+  --height: 55px;
+}
+
+.root {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: var(--nav-z-index);
+  margin: 0px;
+  padding-right: 0px;
+  padding-left: 0px;
+  transition: all ease 300ms;
+
+  a {
+    color: #000;
   }
 
-  &:not(:first-child) {
-    ::before {
-      content: '\00B7';
-      margin: 0 .125rem;
-      opacity: .25 !important;
+  &.sticky {
+    position: fixed;
+    height: 52px;
+    background-color: var(--brand-color);
+    box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    animation-name: slideInDown;
+    animation-duration: 1s;
+    animation-fill-mode: both;
+    a {
+      color: #fff;
+    }
+  }
+
+  &.home {
+    .logo {
+      display: none;
+    }
+    a {
+      color: #fff;
+    }
+  }
+
+  > * {
+    height: var(--height);
+    transition: all ease 300ms;
+  }
+
+  ul {
+    display: inline-block;
+    margin: 0;
+    list-style: none;
+    display: flex;
+    align-content: center;
+    padding: 0;
+
+    &.left {
+      float: left
+    }
+
+    &.right {
+      float: right;
+    }
+
+    > li {
+      position: relative;
+      display: flex;
+      align-content: center;
+      margin: 0px 5px;
+      padding: 0;
+
+      > a {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        margin-bottom: -4px;
+        padding: 0px 10px;
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        cursor: pointer;
+        transition: color 0.3s;
+
+        font-size: 16px;
+        text-decoration: none;
+      }
     }
   }
 }

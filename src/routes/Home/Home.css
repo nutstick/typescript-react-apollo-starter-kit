@@ -1,40 +1,33 @@
 @import '../../components/variables.css';
 
 .root {
-  padding-left: 20px;
-  padding-right: 20px;
-}
+  > section:nth-child(0), section.head {
+    display: flex;
+    justify-content: center;
+    padding: calc(0.2em + 55px) 0 1em;
+    background: var(--brand-color);
+    background-image: var(--background-image);
+    color: #fff;
 
-.container {
-  margin: 0 auto;
-  padding: 0 0 40px;
-  max-width: var(--max-content-width);
-}
+    > .title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: #fff;
+      text-decoration: none;
+      text-align: center;
 
-.newsItem {
-  margin: 0 0 2rem;
-}
-
-.newsTitle {
-  font-size: 1.5rem;
-}
-
-.newsDesc {
-  h1, h2, h3, h4, h5, h6 {
-    font-size: 1.125rem;
+      > .logo {
+        width: 10rem;
+        height: 10rem;
+        margin: 0 auto;
+      }
+      > .brandTxt {
+        margin: 0;
+        font-size: 2.25rem;
+        color: #fff;
+        font-weight: bold;
+      }
+    }
   }
-
-  pre {
-    white-space: pre-wrap;
-    font-size: 0.875rem;
-  }
-
-  img {
-    max-width: 100%;
-  }
-}
-
-.publishedDate {
-  font-size: 0.8em;
-  color: #777;
 }

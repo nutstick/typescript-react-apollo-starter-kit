@@ -1,4 +1,5 @@
 .root {
+  padding: calc(0.2em + 55px) 0 1em;
   min-width: 230px;
   max-width: 550px;
   margin: 0 auto;

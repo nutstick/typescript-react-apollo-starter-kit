@@ -13,12 +13,12 @@ namespace Layout {
 export class Layout extends React.Component<Layout.Props> {
   public render() {
     return (
-      <div>
+      <React.Fragment>
         <Header />
         <Main>
           {this.props.children}
         </Main>
-      </div>
+      </React.Fragment>
     );
   }
 }

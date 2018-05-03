@@ -32,7 +32,8 @@ export const createApolloClient = ({ local, wsEndpoint, ...options }: IOptions) 
 
   const link = wsEndpoint ? ApolloLink.split(
     (operation) => {
-      const operationAST = getOperationAST(operation.query, operation.operationName);
+      // FIXME: Document type not match https://github.com/apollographql/apollo-link/issues/601
+      const operationAST = getOperationAST((operation.query as any), operation.operationName);
       return !!operationAST && operationAST.operation === 'subscription';
     },
     new WebSocketLink({
